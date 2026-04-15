@@ -1,0 +1,3 @@
+tariff_rate_pct,country,product_category,announcement_source,headline,url,date
+15.5,USA,Electronics,News,Test Headline,http://test.com,2023-01-01
+20.0,Canada,Auto,Blog,Test Headline 2,http://test.ca,2023-02-01

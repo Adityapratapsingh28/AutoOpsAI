@@ -73,10 +73,10 @@ class EmailTool(BaseTool):
         body = input_data.get("body", "")
 
         if not body:
-            body = self._build_email_body(prev_results, llm_summary, input_text)
+            body = self._build_email_body(prev_results, llm_summary, input_text, context)
 
         if not subject:
-            subject = self._generate_subject(input_text, prev_results)
+            subject = self._generate_subject(input_text, prev_results, context)
 
         # ── 3. Discover report file to attach ──
         attachment_path, attachment_name = self._find_report_file(prev_results, context)
@@ -103,6 +103,9 @@ class EmailTool(BaseTool):
                 "attachment_name": attachment_name,
                 "body_snippet": body[:200] + "..." if len(body) > 200 else body,
             }
+
+        # Sync to DB BEFORE sending actual emails so it acts as tracking
+        self._sync_meeting_to_calendars(prev_results, recipients, context)
 
         sent_to = []
         errors = []
@@ -138,6 +141,7 @@ class EmailTool(BaseTool):
                 "has_attachment": attachment_path is not None,
                 "attachment_name": attachment_name,
                 "resolution_log": resolution_log,
+                "body_snippet": body[:1000] + "..." if len(body) > 1000 else body,
                 "errors": errors if errors else None,
             }
         else:
@@ -199,15 +203,16 @@ class EmailTool(BaseTool):
             return list(recipients), log
 
         # ── Step 2: Check for team-based sending ──
-        team_name = self._extract_team_name(combined_lower)
-        if team_name:
-            log.append(f"Team name detected: '{team_name}'")
-            team_emails = self._lookup_team_emails(team_name, context)
-            if team_emails:
-                recipients.update(team_emails)
-                log.append(f"Found {len(team_emails)} member(s) in team '{team_name}': {', '.join(team_emails)}")
-            else:
-                log.append(f"No members found for team '{team_name}'")
+        team_names = self._extract_team_names(combined_lower)
+        if team_names:
+            for t_name in team_names:
+                log.append(f"Team name detected: '{t_name}'")
+                team_emails = self._lookup_team_emails(t_name, context)
+                if team_emails:
+                    recipients.update(team_emails)
+                    log.append(f"Found {len(team_emails)} member(s) in team '{t_name}': {', '.join(team_emails)}")
+                else:
+                    log.append(f"No members found for team '{t_name}'")
 
         # ── Step 3: Check for person name ──
         if not recipients:
@@ -253,50 +258,55 @@ class EmailTool(BaseTool):
 
         return list(recipients), log
 
-    def _extract_team_name(self, text: str) -> Optional[str]:
+    def _extract_team_names(self, text: str) -> List[str]:
         """
-        Extract team name from natural language text using NLP patterns.
+        Extract team name(s) from natural language text using NLP patterns.
 
         Handles patterns like:
           - "send to engineering team"
-          - "email the marketing team"
-          - "share with backend team"
-          - "send to all members in design team"
-          - "notify the QA team"
+          - "email the marketing & management team"
+          - "share with backend and frontend team"
           - "send report to engineering"
-          - "email engineering department"
         """
         patterns = [
             # "send/email/share ... to/with [X] team"
-            r'(?:send|email|share|forward|deliver|distribute|notify|inform|cc|broadcast)\s+(?:.*?\s+)?(?:to|with|for)\s+(?:all\s+(?:members?\s+(?:in|of|from)\s+)?)?(?:the\s+)?["\']?(\w[\w\s]*?)["\']?\s+team',
+            r'(?:send|email|share|forward|deliver|distribute|notify|inform|cc|broadcast)\s+(?:.*?\s+)?(?:to|with|for)\s+(?:all\s+(?:members?\s+(?:in|of|from)\s+)?)?(?:the\s+)?["\']?([\w\s,&]+?)["\']?\s+teams?',
             # "[X] team members"
-            r'(?:the\s+)?["\']?(\w[\w\s]*?)["\']?\s+team\s*(?:members?)?',
+            r'(?:the\s+)?["\']?([\w\s,&]+?)["\']?\s+teams?\s*(?:members?)?',
             # "team [X]"
-            r'team\s+["\']?(\w[\w\s]*?)["\']?(?:\s|$|,|\.)',
+            r'teams?\s+["\']?([\w\s,&]+?)["\']?(?:\s|$|,|\.)',
             # "members of/in [X]"
-            r'members?\s+(?:of|in|from)\s+(?:the\s+)?["\']?(\w[\w\s]*?)["\']?(?:\s+team)?(?:\s|$|,|\.)',
+            r'members?\s+(?:of|in|from)\s+(?:the\s+)?["\']?([\w\s,&]+?)["\']?(?:\s+teams?)?(?:\s|$|,|\.)',
             # "send to [X] department"
-            r'(?:send|email|share|forward)\s+(?:.*?\s+)?(?:to|with)\s+(?:the\s+)?["\']?(\w[\w\s]*?)["\']?\s+(?:department|group|division)',
+            r'(?:send|email|share|forward)\s+(?:.*?\s+)?(?:to|with)\s+(?:the\s+)?["\']?([\w\s,&]+?)["\']?\s+(?:departments?|groups?|divisions?)',
             # "send/email to [known-team-name]" (without "team" suffix)
-            # Catches: "send report to engineering", "email marketing"
-            r'(?:send|email|share|forward|deliver|notify)\s+(?:.*?\s+)?(?:to|with)\s+(?:the\s+)?(\w+)(?:\s|$|,|\.)',
+            r'(?:send|email|share|forward|deliver|notify)\s+(?:.*?\s+)?(?:to|with)\s+(?:the\s+)?([\w\s,&]+)(?:\s|$|,|\.)',
         ]
 
         for pattern in patterns:
             match = re.search(pattern, text, re.IGNORECASE)
             if match:
-                team = match.group(1).strip()
-                # Filter out common false positives
+                raw_team_str = match.group(1).strip()
+                # Split by " and ", "&", ","
+                parts = re.split(r'\s+and\s+|&|,', raw_team_str, flags=re.IGNORECASE)
+                
                 stop_words = {
                     "the", "a", "an", "my", "our", "your", "this", "that", "all",
                     "each", "every", "me", "him", "her", "them", "it", "report",
                     "summary", "file", "data", "csv", "pdf", "email", "message",
-                    "result", "output", "analysis", "results",
+                    "result", "output", "analysis", "results", ""
                 }
-                if team.lower() not in stop_words and len(team) > 1:
-                    return team
+                
+                found_teams = []
+                for team in parts:
+                    team = team.strip()
+                    if team.lower() not in stop_words and len(team) > 1:
+                        found_teams.append(team)
+                        
+                if found_teams:
+                    return found_teams
 
-        return None
+        return []
 
     def _extract_person_names(self, text: str) -> List[str]:
         """
@@ -459,49 +469,8 @@ class EmailTool(BaseTool):
         context: Dict[str, Any],
     ) -> Tuple[Optional[str], Optional[str]]:
         """
-        Discover the generated report file from previous tool results.
-
-        Searches for:
-          1. output_file path from csv_export_tool results
-          2. File from data_summarizer_tool (written summary files)
-          3. File from report_tool output
-          4. The original uploaded file (if no generated output found)
-
-        Returns:
-            (file_path, file_name) or (None, None)
+        File attachment is disabled for now as per user request.
         """
-        # Priority 1: Look for generated output files in previous tool results
-        for agent_name, result in prev_results.items():
-            if not isinstance(result, dict):
-                continue
-
-            # csv_export_tool writes analysed output files
-            output_file = result.get("output_file")
-            if output_file and os.path.isfile(output_file):
-                return output_file, os.path.basename(output_file)
-
-            # Check for any file_path in the result
-            file_path = result.get("file_path")
-            if file_path and os.path.isfile(file_path):
-                return file_path, os.path.basename(file_path)
-
-        # Priority 2: Look up the original uploaded file from DB
-        file_id = context.get("file_id")
-        if file_id:
-            try:
-                from ..core.database import fetch_one
-                row = self._run_async(
-                    fetch_one(
-                        "SELECT file_name, file_path FROM files WHERE id = $1",
-                        int(file_id),
-                    ),
-                    context,
-                )
-                if row and row["file_path"] and os.path.isfile(row["file_path"]):
-                    return row["file_path"], row["file_name"]
-            except Exception as e:
-                logger.warning(f"Could not look up file {file_id}: {e}")
-
         return None, None
 
     # ─────────────────────────────────────────────
@@ -513,12 +482,57 @@ class EmailTool(BaseTool):
         prev_results: Dict[str, Any],
         llm_summary: str,
         input_text: str,
+        context: Dict[str, Any],
     ) -> str:
         """Build plain-text email body from previous tool results (report, summary, etc.)."""
         parts = []
-        parts.append("Hi,\n")
-        parts.append("Please find the automated report generated by AutoOps AI below:\n")
-        parts.append("=" * 60)
+        
+        # ── Fetch Sender Name ──
+        # Priority 1: Pre-fetched by orchestrator and passed via context
+        sender_name = context.get("sender_name", "")
+        
+        # Priority 2: Fallback — query DB directly using user_id from context
+        if not sender_name:
+            user_id = context.get("user_id")
+            if user_id:
+                try:
+                    from ..core.database import fetch_val
+                    name = self._run_async(fetch_val(
+                        "SELECT full_name FROM users WHERE id = $1",
+                        user_id
+                    ), context)
+                    if name:
+                        sender_name = name
+                except Exception as e:
+                    logger.warning(f"Could not fetch sender name: {e}")
+        
+        if not sender_name:
+            sender_name = "Your Manager"
+
+        # ── PRIORITY: Is this a Meeting? (Calendly Style) ──
+        has_meeting = False
+        for agent_name, result in prev_results.items():
+            if isinstance(result, dict) and result.get("meeting"):
+                has_meeting = True
+                mtg = result["meeting"]
+                parts.append("Hi Team,\n")
+                parts.append(f"{sender_name} wants to schedule a meet\n")
+                parts.append(f"agenda is {mtg.get('topic', 'N/A')}\n")
+                parts.append(f"time is {mtg.get('start_time', 'N/A')}\n")
+                if mtg.get('duration'):
+                    parts.append(f"duration is {mtg.get('duration')} mins\n")
+                if mtg.get("join_url"):
+                    parts.append(f"meeting link to join.. {mtg.get('join_url')}\n")
+                if mtg.get('password'):
+                    parts.append(f"meeting password: {mtg.get('password')}\n")
+                parts.append("\nkindly join through that\n")
+                parts.append("=" * 60)
+                break
+
+        if not has_meeting:
+            parts.append(f"Hi Team,\n")
+            parts.append(f"Please find the automated report generated by {sender_name} (via AutoOps AI) below:\n")
+            parts.append("=" * 60)
 
         # Priority 1: LLM-generated file summary (from data_summarizer_tool)
         for agent_name, result in prev_results.items():
@@ -540,6 +554,8 @@ class EmailTool(BaseTool):
                 parts.append(f"\n{result['report']}")
                 break
 
+        # Priority 3 is handled above at the top for Calendly styling
+
         # Priority 3: CSV analysis data (from csv_export_tool)
         for agent_name, result in prev_results.items():
             if isinstance(result, dict) and result.get("analysis"):
@@ -548,10 +564,26 @@ class EmailTool(BaseTool):
                 parts.append(f"  Rows: {analysis.get('total_rows', 'N/A')}")
                 parts.append(f"  Columns: {analysis.get('total_columns', 'N/A')}")
                 parts.append(f"  Missing Values: {analysis.get('missing_values', 'N/A')}")
+                
+                insights = analysis.get("data_quality_insights")
+                if insights:
+                    parts.append("\n" + "-" * 80)
+                    parts.append("  🚨 IMPORTANT INSIGHTS: DATA QUALITY")
+                    parts.append("-" * 80)
+                    parts.append("{:<20} | {:<20} | {}".format("COLUMN", "ISSUE", "RECOMMENDED RESOLUTION"))
+                    parts.append("-" * 80)
+                    for item in insights:
+                        col_text = str(item['column'])[:18]
+                        issue_text = str(item['issue'])[:18]
+                        res_text = str(item['resolution'])
+                        parts.append("{:<20} | {:<20} | {}".format(col_text, issue_text, res_text))
+                    parts.append("-" * 80 + "\n")
+                
                 break
 
-        # Fallback: use LLM summary from the email agent itself
-        if len(parts) <= 3:
+        # Fallback: use LLM summary only if nothing meaningful was built
+        # (i.e. no meeting, no report, no summary, no analysis)
+        if not has_meeting and len(parts) <= 3:
             if llm_summary:
                 parts.append(f"\n{llm_summary}")
             else:
@@ -566,8 +598,6 @@ class EmailTool(BaseTool):
         """Convert the plain-text body into a styled HTML email."""
         # Escape HTML characters in the body text
         body_html = plain_body.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-        # Convert newlines to <br> tags
-        body_html = body_html.replace("\n", "<br>")
         # Bold the separator lines
         body_html = body_html.replace("=" * 60, "<hr style='border:1px solid #e0e0e0;'>")
 
@@ -583,33 +613,123 @@ class EmailTool(BaseTool):
     </div>
 
     <div style="background: #fafafa; border-radius: 8px; padding: 20px;
-                border: 1px solid #e8e8e8; line-height: 1.6; font-size: 14px;">
+                border: 1px solid #e8e8e8; line-height: 1.6; font-size: 14px; white-space: pre-wrap; font-family: ui-monospace, Menlo, Monaco, 'Courier New', monospace;">
         {body_html}
     </div>
 
     <div style="margin-top: 24px; padding: 16px; background: #f0f4ff;
                 border-radius: 8px; font-size: 12px; color: #555;">
         <p style="margin: 0;">This email was generated by <strong>AutoOps AI</strong> — Enterprise Workflow Automation Platform</p>
-        <p style="margin: 4px 0 0; opacity: 0.7;">If a report file was generated, it is attached to this email.</p>
     </div>
 </body>
 </html>"""
 
-    def _generate_subject(self, input_text: str, prev_results: Dict[str, Any]) -> str:
-        """Generate a descriptive email subject from context."""
-        # Check if there's a file name in previous results
+    def _sync_meeting_to_calendars(self, prev_results: Dict[str, Any], recipients: List[str], context: Dict[str, Any]):
+        """Detect if meeting was scheduled and sync it to the calendars of all users involved."""
+        from datetime import datetime
+        mtg = None
+        for agent_name, result in prev_results.items():
+            if isinstance(result, dict) and result.get("meeting"):
+                mtg = result["meeting"]
+                break
+                
+        if not mtg:
+            return
+            
+        topic = mtg.get("topic", "AutoOps Generated Meeting")
+        start_time = mtg.get("start_time")
+        join_url = mtg.get("join_url", "")
+        
+        if not start_time:
+            return
+            
+        try:
+            from ..core.database import fetch_all, execute
+            
+            # 1. Gather all target user IDs
+            target_ids = set()
+            sender_id = context.get("user_id")
+            if sender_id:
+                target_ids.add(sender_id)
+                
+            if recipients:
+                # Find DB users matching these emails
+                placeholders = ", ".join(f"${i+1}" for i in range(len(recipients)))
+                if placeholders:
+                    query = f"SELECT id FROM users WHERE email IN ({placeholders})"
+                    rows = self._run_async(fetch_all(query, *recipients), context)
+                    for row in rows:
+                        target_ids.add(row["id"])
+                        
+            # 2. Insert into meetings table for each user
+            for u_id in target_ids:
+                # Basic dedup based on title and time
+                is_duplicate = self._run_async(fetch_all(
+                    "SELECT id FROM meetings WHERE user_id = $1 AND title = $2 AND time = $3",
+                    u_id, topic, start_time
+                ), context)
+                
+                if not is_duplicate:
+                    self._run_async(execute(
+                        "INSERT INTO meetings (user_id, title, time, meeting_link) VALUES ($1, $2, $3, $4)",
+                        u_id, topic, start_time, join_url
+                    ), context)
+                    
+            logger.info(f"Synced meeting to {len(target_ids)} calendar(s).")
+        except Exception as e:
+            logger.warning(f"Failed to sync meeting to calendars: {e}")
+
+    def _generate_subject(self, input_text: str, prev_results: Dict[str, Any], context: Optional[Dict[str, Any]] = None) -> str:
+        """Generate a professional email subject.
+        
+        For meetings: 'Meeting Invitation: <Topic> | <Date>'
+        For reports:  'AutoOps Report — <File/Topic>'
+        """
+        from datetime import datetime
+        context = context or {}
+        sender = context.get("sender_name", "")
+
+        # ── Meeting subject ──
+        for agent_name, result in prev_results.items():
+            if isinstance(result, dict) and result.get("meeting"):
+                mtg = result["meeting"]
+                topic = mtg.get("topic", "Team Meeting")
+                start_time = mtg.get("start_time", "")
+                
+                # Format date nicely: "Wed, Apr 16"
+                date_str = ""
+                if start_time:
+                    try:
+                        dt = datetime.strptime(start_time[:19], "%Y-%m-%dT%H:%M:%S")
+                        date_str = f" | {dt.strftime('%a, %b %d')}"
+                    except Exception:
+                        pass
+                
+                prefix = f"{sender} invites you" if sender else "Meeting Invitation"
+                return f"{prefix}: {topic}{date_str}"
+
+        # ── File report subject ──
         for agent_name, result in prev_results.items():
             if isinstance(result, dict) and result.get("file_info"):
                 fname = result["file_info"].get("name", "")
                 if fname:
-                    return f"AutoOps AI Report — {fname}"
+                    prefix = f"{sender}'s Report" if sender else "AutoOps AI Report"
+                    return f"{prefix} — {fname}"
 
-        # Derive from user prompt
-        prompt_short = input_text[:60].strip()
+        # ── Generic subject ──
+        # Extract a meaningful short phrase from the prompt
+        prompt_clean = input_text.strip()
+        # Remove filler prefixes
+        for filler in ["i need to ", "i want to ", "please ", "can you ", "could you "]:
+            if prompt_clean.lower().startswith(filler):
+                prompt_clean = prompt_clean[len(filler):]
+                break
+        prompt_short = prompt_clean[:55].strip().rstrip(",.:;")
         if prompt_short:
-            return f"AutoOps AI — {prompt_short}"
+            prefix = f"Action from {sender}" if sender else "AutoOps AI"
+            return f"{prefix}: {prompt_short.capitalize()}"
 
-        return "AutoOps AI — Automated Workflow Report"
+        return f"{'Action Required' if not sender else f'Message from {sender}'} — AutoOps AI"
 
     # ─────────────────────────────────────────────
     # SMTP SENDING (with file attachment support)

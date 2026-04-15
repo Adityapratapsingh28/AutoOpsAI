@@ -35,8 +35,8 @@ AVAILABLE TOOLS (assign exactly one per agent, or null if the agent only needs L
                               • If user says ANYTHING about sending/emailing/forwarding/sharing/notifying a report/summary/file to someone, assign this tool
 - "email_reader_tool"      → Reads/searches inbox emails via IMAP
 - "slack_tool"             → Posts messages to Slack channels
-- "zoom_tool"              → Creates Zoom video meetings
-- "calendar_tool"          → Schedules meetings and manages calendar
+- "zoom_tool"              → Creates Zoom video meetings. ALWAYS use this when user asks to schedule a meeting, video link, or meet.
+- "calendar_tool"          → Queries internal database calendar. Only use for listing/checking schedule, not for creating meetings.
 - "sql_tool"               → Runs read-only SQL queries against a database
 - "report_tool"            → Generates a final structured summary report from all agent results (should be the LAST agent)
 

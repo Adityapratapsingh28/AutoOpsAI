@@ -72,6 +72,18 @@ async def run_orchestrator(
     # Store LLM-assigned tool per agent (populated from agents_designed event)
     agent_tool_map: Dict[str, Optional[str]] = {}
 
+    # ── Fetch sender's full_name once — injected into every tool context ──
+    sender_full_name = "Your Manager"
+    try:
+        name_row = await fetch_val(
+            "SELECT full_name FROM users WHERE id = $1", user_id
+        )
+        if name_row:
+            sender_full_name = name_row
+            logger.info(f"Sender resolved: '{sender_full_name}' (user_id={user_id})")
+    except Exception as e:
+        logger.warning(f"Could not fetch sender name for user_id={user_id}: {e}")
+
     # Update workflow status to running
     await execute(
         "UPDATE workflows SET status = 'running' WHERE id = $1",
@@ -123,8 +135,13 @@ async def run_orchestrator(
                         from ..services.tool_dispatcher import execute_tool
                         _push_event("status", {"step": f"Executing specialized tool: {tool_name}..."})
                         
-                        # Gather context for the tool (e.g. file pointers, event loop)
-                        context = {"workflow_id": workflow_id, "user_id": user_id, "event_loop": loop}
+                        # Gather context for the tool (e.g. file pointers, event loop, sender name)
+                        context = {
+                            "workflow_id": workflow_id,
+                            "user_id": user_id,
+                            "event_loop": loop,
+                            "sender_name": sender_full_name,  # pre-fetched from DB at workflow start
+                        }
                         
                         input_data = {
                             "llm_summary": summary,

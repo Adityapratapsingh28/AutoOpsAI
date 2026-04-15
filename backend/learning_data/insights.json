@@ -218,5 +218,215 @@
     "efficiency_gain": 0.0,
     "had_dialogues": true,
     "dialogue_count": 1
+  },
+  {
+    "scenario": "analyse the csv and send the report through email to members in engineering team",
+    "timestamp": 1776276154.6203609,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 3.29,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "analyse the file and send report to engineering team via email",
+    "timestamp": 1776282314.128281,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 9.45,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "analyse the file and send report to engineering team via email",
+    "timestamp": 1776282916.567151,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 8.34,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "analyse the file and send the report to the engineering & Management team members via email",
+    "timestamp": 1776283516.85201,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 11.18,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "analyse the file and send the report to the engineering  team members via email",
+    "timestamp": 1776283741.4383209,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 8.01,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "analyse the data and send report to engineering & management team via email",
+    "timestamp": 1776283997.7083788,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 8.43,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "analyse the file and send report to engineering & management team via email",
+    "timestamp": 1776284161.6791081,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 8.67,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "analyse the file and send report to engineering & management team via email",
+    "timestamp": 1776284296.657614,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 10.99,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "I need to schedule a meeting with my engineering team today 9pm and agenda is agentic ai so i will s",
+    "timestamp": 1776285233.811177,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 13.38,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "SCHEDULE A MEETING WITH ENGINEERING TEAM AT 9M TODAY AND THE AGENDA IS AGENTIC AI",
+    "timestamp": 1776285330.2241569,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 6.55,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "I need to schedule a meeting with my engineering team today 9pm and agenda is agentic ai so i will s",
+    "timestamp": 1776285367.9320588,
+    "agents_count": 3,
+    "success_rate": 0.3333333333333333,
+    "total_time": 2.0,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "I need to schedule a zoom meeting with my engineering team today 9pm and agenda is agentic ai so i w",
+    "timestamp": 1776285545.4985049,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 12.12,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "I need to schedule a zoom meeting with my engineering team today 9pm and agenda is agentic ai so i w",
+    "timestamp": 1776285931.446008,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 12.33,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "I need to schedule a zoom meeting with my engineering team today at 9pm and agenda is Agentic AI, th",
+    "timestamp": 1776286881.4241102,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 17.49,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "I need to schedule a zoom meeting with my engineering team today at 9pm and agenda is Agentic AI, th",
+    "timestamp": 1776287417.960254,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 14.27,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "Schedule a meeting with my engineering & management team at 9pm today and agenda is agentic ai, send",
+    "timestamp": 1776287722.312703,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 9.72,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "I need to schedule a zoom meeting with my engineering team today at 9pm and agenda is Agentic AI, th",
+    "timestamp": 1776288099.695709,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 15.24,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "I need to schedule a zoom meeting with my engineering team today at 9pm and agenda is Agentic AI, th",
+    "timestamp": 1776288545.2349691,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 13.93,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "I need to schedule a zoom meeting with my engineering team today at 9pm and agenda is Agentic AI, th",
+    "timestamp": 1776288624.035267,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 13.95,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "I need to schedule a zoom meeting with my engineering team today at 9pm and agenda is Agentic AI, th",
+    "timestamp": 1776288710.573289,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 13.54,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "schedule a meet with engineering team about workflow managent at 7 pm 18 april",
+    "timestamp": 1776288798.958621,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 5.85,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
   }
 ]

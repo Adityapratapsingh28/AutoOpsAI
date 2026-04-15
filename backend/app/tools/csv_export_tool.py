@@ -275,6 +275,26 @@ class CSVExportTool(BaseTool):
             )
 
             # ── Build response ──
+            # ── Collect important insights ──
+            important_insights = []
+            for item in quality_rows:
+                issues = item["Issues"]
+                col = item["Column"]
+                if issues != "None":
+                    resolutions = []
+                    if "High nulls" in issues or "Some nulls" in issues:
+                        resolutions.append("Impute missing values or drop rows if not recoverable.")
+                    if "No variation" in issues:
+                        resolutions.append("Consider dropping this column as it provides no variance.")
+                    if "Possible ID column" in issues:
+                        resolutions.append("Exclude from ML models to prevent overfitting.")
+                    
+                    important_insights.append({
+                        "column": col,
+                        "issue": issues,
+                        "resolution": " ".join(resolutions)
+                    })
+
             analysis_summary = {
                 "total_rows": len(df),
                 "total_columns": len(df.columns),
@@ -284,6 +304,7 @@ class CSVExportTool(BaseTool):
                 "missing_values": int(df.isnull().sum().sum()),
                 "missing_pct": round(df.isnull().sum().sum() / (len(df) * len(df.columns)) * 100, 2) if len(df) > 0 and len(df.columns) > 0 else 0,
                 "duplicate_rows": int(df.duplicated().sum()),
+                "data_quality_insights": important_insights,
             }
 
             if numeric_cols:

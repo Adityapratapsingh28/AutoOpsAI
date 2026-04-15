@@ -5,6 +5,51 @@
 if (!requireAuth()) throw new Error('Not authenticated');
 
 let currentDate = new Date();
+let currentMeetings = [];
+
+// ── Inject Tooltip Styles ──
+let tooltipsStyle = document.createElement('style');
+tooltipsStyle.innerHTML = `
+.calendar-event {
+    position: relative;
+    overflow: visible !important;
+}
+.calendar-event .event-tooltip {
+    display: none;
+    position: absolute;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e293b;
+    border: 1px solid #334155;
+    padding: 12px;
+    border-radius: 8px;
+    width: 240px;
+    z-index: 9999;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    white-space: normal;
+    text-align: left;
+    cursor: default;
+}
+.calendar-event:hover .event-tooltip {
+    display: block;
+}
+.event-tooltip h4 { margin: 0 0 6px 0; color: #fff; font-size: 14px; font-weight: 600; line-height: 1.3; }
+.event-tooltip p { margin: 0 0 10px 0; color: #94a3b8; font-size: 12px; display: flex; align-items: center; gap: 4px; }
+.event-tooltip a { display: inline-block; background: #3b82f6; color: #fff; text-decoration: none; font-size: 12px; padding: 6px 12px; border-radius: 4px; font-weight: 500; transition: background 0.2s; }
+.event-tooltip a:hover { background: #2563eb; }
+.event-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -6px;
+    border-width: 6px;
+    border-style: solid;
+    border-color: #334155 transparent transparent transparent;
+}
+`;
+document.head.appendChild(tooltipsStyle);
 
 // ── Calendar Rendering ──
 
@@ -32,9 +77,35 @@ function renderCalendar() {
     // Day cells
     for (let d = 1; d <= daysInMonth; d++) {
         const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+        
+        // Find meetings for this day
+        let daysMeetings = currentMeetings.filter(m => {
+            if (!m.time) return false;
+            let dObj = new Date(m.time);
+            return dObj.getFullYear() === year && dObj.getMonth() === month && dObj.getDate() === d;
+        });
+
+        let meetingsHtml = daysMeetings.map(m => {
+            let mDate = new Date(m.time);
+            let mTimeStr = mDate.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit', hour12: false});
+            let joinLinkHtml = m.meeting_link ? `<a href="${m.meeting_link}" target="_blank">Join Zoom Meeting →</a>` : '';
+            return `
+            <div class="calendar-event" style="background-color: rgba(59, 130, 246, 0.2); color: #3b82f6; padding: 2px 6px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;">
+                ${mTimeStr} ${m.title}
+                <div class="event-tooltip">
+                    <h4>${m.title}</h4>
+                    <p>🕒 ${mTimeStr}</p>
+                    ${joinLinkHtml}
+                </div>
+            </div>`;
+        }).join('');
+
         html += `
             <div class="calendar-cell ${isToday ? 'today' : ''}">
-                <div class="day-num ${isToday ? '' : ''}">${d}</div>
+                <div class="day-num">${d}</div>
+                <div class="calendar-events-container" style="margin-top: 4px; font-size: 0.75rem; overflow: hidden; display: flex; flex-direction: column; gap: 2px;">
+                    ${meetingsHtml}
+                </div>
             </div>
         `;
     }
@@ -51,10 +122,11 @@ function changeMonth(delta) {
 
 async function loadMeetings() {
     try {
-        const meetings = await apiGet('/meetings');
+        currentMeetings = await apiGet('/meetings');
+        renderCalendar(); // Re-render to show meetings in the calendar grid
         const list = document.getElementById('meetingList');
 
-        if (meetings.length === 0) {
+        if (currentMeetings.length === 0) {
             list.innerHTML = `
                 <div class="empty-state">
                     <div class="icon">📅</div>
@@ -64,7 +136,7 @@ async function loadMeetings() {
             return;
         }
 
-        list.innerHTML = meetings.map(m => {
+        list.innerHTML = currentMeetings.map(m => {
             const time = m.time ? new Date(m.time) : null;
             const hour = time ? time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }).replace(' ', '') : '--:--';
             const [h, p] = hour.split(/(AM|PM)/);
@@ -125,5 +197,4 @@ async function deleteMeeting(id) {
     }
 }
 
-renderCalendar();
 loadMeetings();
