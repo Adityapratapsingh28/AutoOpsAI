@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Workflows — AutoOps AI</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="bg-mesh"></div>
+    <div class="app-layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo"><h2>⚡ AUTOOPS AI</h2><span>AI Workflow Engine</span></div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main</div>
+                    <a href="dashboard.html" class="nav-link"><span class="icon">📊</span> Dashboard</a>
+                    <a href="workflow.html" class="nav-link"><span class="icon">⚡</span> Run Workflow</a>
+                    <a href="history.html" class="nav-link active"><span class="icon">📋</span> My Workflows</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Resources</div>
+                    <a href="files.html" class="nav-link"><span class="icon">📁</span> Files</a>
+                    <a href="schedule.html" class="nav-link"><span class="icon">📅</span> Schedule</a>
+                </div>
+                <div class="nav-section">
+                    <a href="settings.html" class="nav-link"><span class="icon">⚙️</span> Settings</a>
+                    <a href="#" class="nav-link" onclick="logout()"><span class="icon">🚪</span> Sign Out</a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-widget">
+                    <div class="user-avatar" id="userAvatar">U</div>
+                    <div class="user-info">
+                        <div class="name" id="userName">User</div>
+                        <div class="role" id="userRole">employee</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header">
+                <h1>📋 My Workflows</h1>
+                <p>View and manage your workflow execution history.</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Workflow History</h3>
+                    <a href="workflow.html" class="btn btn-primary btn-sm">⚡ New Workflow</a>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Workflow</th>
+                                <th>Agents</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTable">
+                            <tr><td colspan="5" class="text-center text-muted" style="padding:2rem;">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Detail Modal -->
+            <div id="detailModal" class="modal-overlay hidden" onclick="closeModal(event)">
+                <div class="modal" onclick="event.stopPropagation()">
+                    <div class="card-header">
+                        <h3 class="card-title" id="modalTitle">Workflow Details</h3>
+                        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('detailModal').classList.add('hidden')">✕</button>
+                    </div>
+                    <div id="modalContent" style="max-height:400px;overflow-y:auto;margin-top:1rem;">
+                    </div>
+                    <div style="margin-top:1rem;display:flex;gap:0.5rem;">
+                        <button class="btn btn-primary btn-sm" id="rerunBtn" onclick="rerunWorkflow()">🔄 Re-run</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <script src="js/api.js"></script>
+    <script src="js/history.js"></script>
+</body>
+</html>

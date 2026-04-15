@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Run Workflow — AutoOps AI</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="bg-mesh"></div>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <h2>⚡ AUTOOPS AI</h2>
+                <span>AI Workflow Engine</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main</div>
+                    <a href="dashboard.html" class="nav-link"><span class="icon">📊</span> Dashboard</a>
+                    <a href="workflow.html" class="nav-link active"><span class="icon">⚡</span> Run Workflow</a>
+                    <a href="history.html" class="nav-link"><span class="icon">📋</span> My Workflows</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Resources</div>
+                    <a href="files.html" class="nav-link"><span class="icon">📁</span> Files</a>
+                    <a href="schedule.html" class="nav-link"><span class="icon">📅</span> Schedule</a>
+                </div>
+                <div class="nav-section">
+                    <a href="settings.html" class="nav-link"><span class="icon">⚙️</span> Settings</a>
+                    <a href="#" class="nav-link" onclick="logout()"><span class="icon">🚪</span> Sign Out</a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-widget">
+                    <div class="user-avatar" id="userAvatar">U</div>
+                    <div class="user-info">
+                        <div class="name" id="userName">User</div>
+                        <div class="role" id="userRole">employee</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1>⚡ Run Workflow</h1>
+                <p>Describe what you want to automate and let AI agents handle the rest.</p>
+            </div>
+
+            <!-- Input Section -->
+            <div class="workflow-input-area">
+                <textarea
+                    class="workflow-textarea"
+                    id="workflowInput"
+                    placeholder="Describe your workflow... e.g. 'Analyze the uploaded CSV file and email a summary to the team'"
+                    rows="3"
+                ></textarea>
+
+                <!-- File Upload -->
+                <div id="uploadZone" class="upload-zone mt-2" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <div class="icon">📎</div>
+                    <p>Drag & drop a CSV file here, or <strong>click to browse</strong></p>
+                    <p class="hint">Supports CSV, XLSX up to 10MB</p>
+                    <input type="file" id="fileInput" accept=".csv,.xlsx" style="display:none" onchange="handleFileSelect(event)">
+                </div>
+                <div id="fileAttached" class="file-attached hidden mt-1">
+                    <span>📄</span>
+                    <span id="fileName"></span>
+                    <span class="remove" onclick="removeFile()">✕</span>
+                </div>
+
+                <div class="workflow-actions">
+                    <button class="btn btn-primary btn-lg" id="runBtn" onclick="runWorkflow()">
+                        ⚡ Run Workflow
+                    </button>
+                    <span class="text-sm text-muted" id="runStatus"></span>
+                </div>
+            </div>
+
+            <!-- Execution Results (hidden initially) -->
+            <div id="executionSection" class="hidden" style="margin-top:1.5rem;">
+                <!-- Agents + DAG -->
+                <div class="execution-grid">
+                    <!-- Agents Panel -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">🤖 Agents</h3>
+                            <span class="badge badge-running" id="agentCount">0 agents</span>
+                        </div>
+                        <div class="agent-list" id="agentList">
+                            <div class="empty-state" id="agentEmpty">
+                                <p class="text-muted">Agents will appear here during execution...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DAG Visualization -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">🔀 Workflow Graph</h3>
+                        </div>
+                        <div class="dag-container" id="dagContainer">
+                            <svg id="dagSvg" width="100%" height="300"></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Logs -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">📡 Live Execution Logs</h3>
+                        <span class="badge badge-running" id="logStatus">Streaming</span>
+                    </div>
+                    <div class="logs-terminal" id="logsTerminal">
+                        <div class="log-entry info">
+                            <span class="timestamp">[--:--:--]</span>
+                            <span class="message">Waiting for workflow to start...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Report & Analysis Output -->
+                <div class="report-panel mt-2" id="reportPanel" style="display:none;">
+                    <!-- Analysis Summary Cards -->
+                    <div id="analysisSummary" class="analysis-summary" style="display:none;"></div>
+
+                    <!-- Report Text -->
+                    <div class="card" id="reportCard" style="display:none;">
+                        <div class="card-header">
+                            <h3 class="card-title">📊 Analysis Report</h3>
+                            <div class="report-actions">
+                                <button class="btn btn-ghost btn-sm" onclick="copyReport()">📋 Copy</button>
+                                <button class="btn btn-primary btn-sm" onclick="saveToFiles()">💾 Save to Files</button>
+                            </div>
+                        </div>
+                        <div class="report-body">
+                            <pre class="report-text" id="reportText"></pre>
+                        </div>
+                    </div>
+
+                    <!-- Raw JSON (collapsible) -->
+                    <details class="card mt-1" id="rawOutputCard" style="display:none;">
+                        <summary class="card-header" style="cursor:pointer;">
+                            <h3 class="card-title">🔧 Raw JSON Output</h3>
+                        </summary>
+                        <div class="output-body">
+                            <pre class="output-json" id="outputContent"></pre>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/workflow.js"></script>
+</body>
+</html>

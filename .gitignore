@@ -1,0 +1,108 @@
+# ==============================
+# 🔐 ENV & SECRETS
+# ==============================
+.env
+.env.*
+*.env
+
+# ==============================
+# 🐍 PYTHON
+# ==============================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+
+# Virtual environments
+venv/
+env/
+myenv/
+.venv/
+
+# ==============================
+# 📦 DEPENDENCIES
+# ==============================
+node_modules/
+dist/
+build/
+
+# ==============================
+# 🧪 TEST / CACHE
+# ==============================
+.pytest_cache/
+.coverage
+htmlcov/
+.cache/
+
+# ==============================
+# 📁 LOGS
+# ==============================
+logs/
+*.log
+
+# Your custom logs folder
+ODI-based-multi-agent-Framework/logs/
+
+# ==============================
+# 🧠 AI / VECTOR DB / STORAGE
+# ==============================
+chroma_storage/
+*.parquet
+*.faiss
+*.pkl
+
+# ==============================
+# 📂 UPLOADS / GENERATED FILES
+# ==============================
+uploads/
+backend/uploads/
+
+# ==============================
+# 🐳 DOCKER (OPTIONAL)
+# ==============================
+*.tar
+*.gz
+
+# ==============================
+# 🧾 IDE / EDITOR
+# ==============================
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# ==============================
+# 📊 NOTEBOOKS
+# ==============================
+.ipynb_checkpoints/
+
+# ==============================
+# 🔧 MIGRATIONS (OPTIONAL)
+# ==============================
+# If auto-generated and not needed
+#migrations/
+
+# ==============================
+# 🔒 SECRETS / KEYS
+# ==============================
+*.pem
+*.key
+*.crt
+
+# ==============================
+# 📁 FRONTEND (if using React/Next)
+# ==============================
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+
+# ==============================
+# 🚀 MISC
+# ==============================
+*.bak
+*.tmp
+*.temp

@@ -1,0 +1,222 @@
+[
+  {
+    "scenario": "Analyze the CSV",
+    "timestamp": 1776160704.9671206,
+    "agents_count": 4,
+    "success_rate": 1.0,
+    "total_time": 4.47,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "Analyze the csv and create meet link",
+    "timestamp": 1776161551.4916494,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 4.04,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "Analyze csv and create meeting",
+    "timestamp": 1776161696.7178657,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 2.82,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "analyse",
+    "timestamp": 1776196457.614701,
+    "agents_count": 4,
+    "success_rate": 1.0,
+    "total_time": 2.27,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "analyse and generate report",
+    "timestamp": 1776197417.2128582,
+    "agents_count": 4,
+    "success_rate": 1.0,
+    "total_time": 1.93,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "Analyze and generate report",
+    "timestamp": 1776197964.232745,
+    "agents_count": 4,
+    "success_rate": 1.0,
+    "total_time": 3.5,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "analyse and generate report",
+    "timestamp": 1776199362.8224902,
+    "agents_count": 4,
+    "success_rate": 1.0,
+    "total_time": 2.39,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "analyse the file and generate report",
+    "timestamp": 1776200465.0557928,
+    "agents_count": 4,
+    "success_rate": 1.0,
+    "total_time": 1.61,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "analyse the file and generate report",
+    "timestamp": 1776201204.1651578,
+    "agents_count": 2,
+    "success_rate": 1.0,
+    "total_time": 1.07,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 1
+  },
+  {
+    "scenario": "analyse & generate report",
+    "timestamp": 1776201926.5607948,
+    "agents_count": 2,
+    "success_rate": 1.0,
+    "total_time": 12.2,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 1
+  },
+  {
+    "scenario": "analyse and generate detailed report",
+    "timestamp": 1776202523.235917,
+    "agents_count": 2,
+    "success_rate": 1.0,
+    "total_time": 2.15,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 1
+  },
+  {
+    "scenario": "analyse the file and give me output",
+    "timestamp": 1776202711.517187,
+    "agents_count": 2,
+    "success_rate": 1.0,
+    "total_time": 1.81,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 1
+  },
+  {
+    "scenario": "analyse and generate report",
+    "timestamp": 1776203644.0674,
+    "agents_count": 2,
+    "success_rate": 1.0,
+    "total_time": 1.3,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 1
+  },
+  {
+    "scenario": "summarise and generate report",
+    "timestamp": 1776203749.763347,
+    "agents_count": 2,
+    "success_rate": 1.0,
+    "total_time": 1.35,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 1
+  },
+  {
+    "scenario": "analyse and generate report",
+    "timestamp": 1776258898.3991418,
+    "agents_count": 2,
+    "success_rate": 1.0,
+    "total_time": 4.07,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 1
+  },
+  {
+    "scenario": "summarise this file",
+    "timestamp": 1776258985.156373,
+    "agents_count": 2,
+    "success_rate": 1.0,
+    "total_time": 3.37,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 1
+  },
+  {
+    "scenario": "analyse this file and generate detailed report",
+    "timestamp": 1776259452.348196,
+    "agents_count": 2,
+    "success_rate": 1.0,
+    "total_time": 100.81,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 1
+  },
+  {
+    "scenario": "summarise this report",
+    "timestamp": 1776260146.935515,
+    "agents_count": 2,
+    "success_rate": 1.0,
+    "total_time": 5.36,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 1
+  },
+  {
+    "scenario": "analyse this report",
+    "timestamp": 1776260208.286006,
+    "agents_count": 2,
+    "success_rate": 1.0,
+    "total_time": 1.27,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 1
+  },
+  {
+    "scenario": "analyse this file",
+    "timestamp": 1776260614.799909,
+    "agents_count": 2,
+    "success_rate": 1.0,
+    "total_time": 2.18,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 1
+  },
+  {
+    "scenario": "summarise this file",
+    "timestamp": 1776260990.419822,
+    "agents_count": 2,
+    "success_rate": 1.0,
+    "total_time": 3.48,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 1
+  },
+  {
+    "scenario": "summarize this file",
+    "timestamp": 1776261420.063262,
+    "agents_count": 2,
+    "success_rate": 1.0,
+    "total_time": 5.26,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 1
+  }
+]

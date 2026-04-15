@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule — AutoOps AI</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="bg-mesh"></div>
+    <div class="app-layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo"><h2>⚡ AUTOOPS AI</h2><span>AI Workflow Engine</span></div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main</div>
+                    <a href="dashboard.html" class="nav-link"><span class="icon">📊</span> Dashboard</a>
+                    <a href="workflow.html" class="nav-link"><span class="icon">⚡</span> Run Workflow</a>
+                    <a href="history.html" class="nav-link"><span class="icon">📋</span> My Workflows</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Resources</div>
+                    <a href="files.html" class="nav-link"><span class="icon">📁</span> Files</a>
+                    <a href="schedule.html" class="nav-link active"><span class="icon">📅</span> Schedule</a>
+                </div>
+                <div class="nav-section">
+                    <a href="settings.html" class="nav-link"><span class="icon">⚙️</span> Settings</a>
+                    <a href="#" class="nav-link" onclick="logout()"><span class="icon">🚪</span> Sign Out</a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-widget">
+                    <div class="user-avatar" id="userAvatar">U</div>
+                    <div class="user-info">
+                        <div class="name" id="userName">User</div>
+                        <div class="role" id="userRole">employee</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;">
+                <div>
+                    <h1>📅 Schedule</h1>
+                    <p>Manage your meetings and calendar.</p>
+                </div>
+                <button class="btn btn-primary" onclick="showAddMeeting()">+ New Meeting</button>
+            </div>
+
+            <!-- Calendar Grid -->
+            <div class="card mb-2">
+                <div class="card-header">
+                    <button class="btn btn-ghost btn-sm" onclick="changeMonth(-1)">← Prev</button>
+                    <h3 class="card-title" id="calendarTitle">April 2026</h3>
+                    <button class="btn btn-ghost btn-sm" onclick="changeMonth(1)">Next →</button>
+                </div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+            </div>
+
+            <!-- Upcoming Meetings -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Upcoming Meetings</h3>
+                </div>
+                <div class="meeting-list" id="meetingList">
+                    <div class="empty-state">
+                        <div class="icon">📅</div>
+                        <h3>No meetings</h3>
+                        <p>Create a meeting or run a workflow to schedule one</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Meeting Modal -->
+            <div id="meetingModal" class="modal-overlay hidden" onclick="closeMeetingModal(event)">
+                <div class="modal" onclick="event.stopPropagation()">
+                    <h3 class="card-title mb-2">New Meeting</h3>
+                    <form onsubmit="createMeeting(event)">
+                        <div class="form-group">
+                            <label>Title</label>
+                            <input type="text" id="meetingTitle" class="form-input" placeholder="Team Standup" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Date & Time</label>
+                            <input type="datetime-local" id="meetingTime" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Meeting Link (optional)</label>
+                            <input type="url" id="meetingLink" class="form-input" placeholder="https://zoom.us/j/...">
+                        </div>
+                        <div style="display:flex;gap:0.5rem;margin-top:1.5rem;">
+                            <button type="submit" class="btn btn-primary">Create Meeting</button>
+                            <button type="button" class="btn btn-secondary" onclick="document.getElementById('meetingModal').classList.add('hidden')">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <script src="js/api.js"></script>
+    <script src="js/schedule.js"></script>
+</body>
+</html>
