@@ -34,7 +34,7 @@ AVAILABLE TOOLS (assign exactly one per agent, or null if the agent only needs L
                               • Auto-Content: Builds email body from previous tool results (summaries, analysis, reports)
                               • If user says ANYTHING about sending/emailing/forwarding/sharing/notifying a report/summary/file to someone, assign this tool
 - "email_reader_tool"      → Reads/searches inbox emails via IMAP
-- "slack_tool"             → Posts messages to Slack channels
+- "slack_tool"             → Communicates with teams via Slack. Posts meeting details to #meetings, sends data anomaly alerts to #data-process, and handles DMs directly to teams/managers.
 - "zoom_tool"              → Creates Zoom video meetings. ALWAYS use this when user asks to schedule a meeting, video link, or meet.
 - "calendar_tool"          → Queries internal database calendar. Only use for listing/checking schedule, not for creating meetings.
 - "sql_tool"               → Runs read-only SQL queries against a database
@@ -80,6 +80,8 @@ IMPORTANT RULES:
   ALWAYS include the target recipient (team name, person name, or email) in the agent's responsibilities.
   Example: "Send the generated report with file attachment to the engineering team"
   The email_tool will auto-resolve recipients from the database, build the email body from prior results, and attach any generated files.
+- If the user asks to post a message in Slack, alert a Slack channel, ping a team or manager, notify via Slack, or broadcasts meeting details on Slack, assign "slack_tool". 
+  Use this proactively if tasks involve communication, approvals, alerting, or chat.
 - If multiple tasks are requested (e.g., summarize + email), create separate agents for each with the appropriate tool.
   The email agent MUST depend on the summarizer/analysis agent so it receives the output content and files to send.
 - The last agent should typically use "report_tool" to compile a final summary. Place the email agent BEFORE the report agent if emailing is requested.

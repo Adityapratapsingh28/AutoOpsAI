@@ -428,5 +428,65 @@
     "efficiency_gain": 0.0,
     "had_dialogues": true,
     "dialogue_count": 2
+  },
+  {
+    "scenario": "Schedule a Zoom meeting for the engineering team today at 5:00 PM to discuss the new AI integration.",
+    "timestamp": 1776291376.6201222,
+    "agents_count": 4,
+    "success_rate": 1.0,
+    "total_time": 8.05,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "Analyze the attached CSV. Schedule a Zoom meeting with the backend team for tomorrow at 10 AM to rev",
+    "timestamp": 1776291546.059288,
+    "agents_count": 6,
+    "success_rate": 1.0,
+    "total_time": 19.07,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "I need to schedule a zoom meeting with my engineering team today at 9pm and agenda is Agentic AI, th",
+    "timestamp": 1776291850.300672,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 14.57,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "Schedule a Zoom meeting for the engineering team today at 5:00 PM to discuss the new AI integration.",
+    "timestamp": 1776292245.638744,
+    "agents_count": 4,
+    "success_rate": 1.0,
+    "total_time": 12.92,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "Schedule a Zoom meeting for the engineering team today... and broadcast the details",
+    "timestamp": 1776292571.236415,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 7.01,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "Schedule a Zoom meeting for the engineering team today... and broadcast the details in slack",
+    "timestamp": 1776292635.6810439,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 25.96,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
   }
 ]

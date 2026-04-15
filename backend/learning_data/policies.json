@@ -328,11 +328,17 @@
       "Successfully handled 'I need to schedule a zoom meeting with my engineering team t...' in 0.2s",
       "Successfully handled 'I need to schedule a zoom meeting with my engineering team t...' in 0.3s",
       "Successfully handled 'I need to schedule a zoom meeting with my engineering team t...' in 0.5s",
-      "Successfully handled 'I need to schedule a zoom meeting with my engineering team t...' in 0.4s"
+      "Successfully handled 'I need to schedule a zoom meeting with my engineering team t...' in 0.4s",
+      "Successfully handled 'Schedule a Zoom meeting for the engineering team today at 5:...' in 0.3s",
+      "Successfully handled 'Analyze the attached CSV. Schedule a Zoom meeting with the b...' in 0.3s",
+      "Successfully handled 'Schedule a Zoom meeting for the engineering team today... an...' in 0.3s",
+      "Successfully handled 'Schedule a Zoom meeting for the engineering team today... an...' in 11.6s"
     ],
     "common_failures": [],
     "optimal_patterns": [
-      "Fast execution pattern: Scheduled a Zoom meeting with the engineering team at 9pm today with the agenda "
+      "Fast execution pattern: Scheduled a Zoom meeting with the engineering team at 9pm today with the agenda ",
+      "Fast execution pattern: Scheduled a Zoom meeting with the engineering team at 5pm today with the agenda ",
+      "Fast execution pattern: Scheduled a Zoom meeting with the backend team at 10 AM tomorrow with the agenda"
     ]
   },
   "Send Email Invitation": {
@@ -341,12 +347,16 @@
       "Successfully handled 'I need to schedule a zoom meeting with my engineering team t...' in 0.2s",
       "Successfully handled 'I need to schedule a zoom meeting with my engineering team t...' in 0.4s",
       "Successfully handled 'Schedule a meeting with my engineering & management team at ...' in 0.6s",
-      "Successfully handled 'schedule a meet with engineering team about workflow managen...' in 0.3s"
+      "Successfully handled 'schedule a meet with engineering team about workflow managen...' in 0.3s",
+      "Successfully handled 'Schedule a Zoom meeting for the engineering team today at 5:...' in 0.4s",
+      "Successfully handled 'Analyze the attached CSV. Schedule a Zoom meeting with the b...' in 0.3s",
+      "Successfully handled 'Schedule a Zoom meeting for the engineering team today... an...' in 0.3s"
     ],
     "common_failures": [],
     "optimal_patterns": [
       "Fast execution pattern: Sent email invitations to all members of the engineering team with meeting detai",
-      "Fast execution pattern: Sent email invitations to all members of the engineering and management team wit"
+      "Fast execution pattern: Sent email invitations to all members of the engineering and management team wit",
+      "Fast execution pattern: Sent email invitations to all members of the backend team with meeting details: "
     ]
   },
   "Generate Meeting Report": {
@@ -355,7 +365,10 @@
       "Successfully handled 'Schedule a meeting with my engineering & management team at ...' in 0.4s",
       "Successfully handled 'I need to schedule a zoom meeting with my engineering team t...' in 0.6s",
       "Successfully handled 'I need to schedule a zoom meeting with my engineering team t...' in 0.4s",
-      "Successfully handled 'schedule a meet with engineering team about workflow managen...' in 0.3s"
+      "Successfully handled 'schedule a meet with engineering team about workflow managen...' in 0.3s",
+      "Successfully handled 'Schedule a Zoom meeting for the engineering team today at 5:...' in 0.3s",
+      "Successfully handled 'Schedule a Zoom meeting for the engineering team today... an...' in 0.3s",
+      "Successfully handled 'Schedule a Zoom meeting for the engineering team today... an...' in 4.5s"
     ],
     "common_failures": [],
     "optimal_patterns": [
@@ -374,6 +387,54 @@
     "optimal_patterns": [
       "Fast execution pattern: Scheduled a Zoom meeting with the engineering & management team at 9pm today wit",
       "Fast execution pattern: Scheduled a Zoom meeting with the engineering team at 7pm on 18 April with the a"
+    ]
+  },
+  "Broadcast Meeting Details": {
+    "best_practices": [
+      "Successfully handled 'Schedule a Zoom meeting for the engineering team today at 5:...' in 0.4s",
+      "Successfully handled 'Analyze the attached CSV. Schedule a Zoom meeting with the b...' in 0.3s"
+    ],
+    "common_failures": [],
+    "optimal_patterns": [
+      "Fast execution pattern: Broadcasted meeting details on Slack for the engineering team's Zoom meeting at ",
+      "Fast execution pattern: Broadcasted meeting details on Slack for the backend team's Zoom meeting at 10am"
+    ]
+  },
+  "Analyze CSV File": {
+    "best_practices": [
+      "Successfully handled 'Analyze the attached CSV. Schedule a Zoom meeting with the b...' in 0.3s"
+    ],
+    "common_failures": [],
+    "optimal_patterns": [
+      "Fast execution pattern: Analyzed the attached CSV file, scheduled a Zoom meeting with the backend team f"
+    ]
+  },
+  "Generate Detailed Report": {
+    "best_practices": [
+      "Successfully handled 'Analyze the attached CSV. Schedule a Zoom meeting with the b...' in 0.9s"
+    ],
+    "common_failures": [],
+    "optimal_patterns": [
+      "Fast execution pattern: Generated a detailed report from the attached CSV. Scheduled a Zoom meeting with"
+    ]
+  },
+  "Generate Final Report": {
+    "best_practices": [
+      "Successfully handled 'Analyze the attached CSV. Schedule a Zoom meeting with the b...' in 0.4s",
+      "Successfully handled 'Schedule a Zoom meeting for the engineering team today at 5:...' in 5.3s"
+    ],
+    "common_failures": [],
+    "optimal_patterns": [
+      "Fast execution pattern: Generated final report with meeting details: Zoom meeting scheduled for tomorrow"
+    ]
+  },
+  "Send Slack Invitation": {
+    "best_practices": [
+      "Successfully handled 'Schedule a Zoom meeting for the engineering team today... an...' in 7.3s"
+    ],
+    "common_failures": [],
+    "optimal_patterns": [
+      "Fast execution pattern: Sent meeting details to all members in Slack: Zoom meeting scheduled for today a"
     ]
   }
 }
