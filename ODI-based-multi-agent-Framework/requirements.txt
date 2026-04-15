@@ -1,0 +1,6 @@
+# Phase 3 Dependencies
+python-dotenv
+openai
+chromadb
+sentence-transformers
+numpy

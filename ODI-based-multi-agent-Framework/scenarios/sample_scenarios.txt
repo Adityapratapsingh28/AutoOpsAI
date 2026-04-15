@@ -1,0 +1,22 @@
+# Sample Scenarios for the Multi-Agent Orchestration Framework
+# Each scenario is a natural-language description that the Meta-Orchestrator
+# will analyze to determine the required agent ensemble and coordination strategy.
+# ---
+
+Scenario 1: Urban Search and Rescue
+A 7.2-magnitude earthquake has struck a densely populated urban area. Multiple
+buildings have collapsed, and emergency services are overwhelmed. The system must
+coordinate search-and-rescue teams, medical responders, logistics coordinators,
+and communication relay agents to maximize survivor recovery within a 72-hour window.
+
+Scenario 2: Collaborative Research Synthesis
+A research team needs to produce a comprehensive literature review on "Federated
+Learning in Healthcare." The system must deploy agents for paper discovery,
+relevance filtering, key-finding extraction, cross-paper synthesis, and
+contradiction identification across 200+ candidate papers.
+
+Scenario 3: Supply Chain Disruption Response
+A critical semiconductor supplier has halted production due to a factory fire.
+Multiple downstream manufacturers are affected. The system must coordinate
+inventory assessment agents, alternative supplier scouts, logistics rerouting
+planners, and stakeholder communication agents to minimize production delays.
