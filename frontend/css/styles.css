@@ -9,57 +9,59 @@
 /* ── CSS Custom Properties ── */
 :root {
     /* Primary Palette */
-    --bg-primary: #06080f;
-    --bg-secondary: #0c1020;
-    --bg-tertiary: #111631;
-    --bg-card: rgba(15, 20, 45, 0.7);
-    --bg-card-hover: rgba(20, 28, 58, 0.85);
-    --bg-input: rgba(12, 16, 38, 0.8);
-    --bg-sidebar: rgba(8, 12, 28, 0.95);
+    --bg-primary: #ffffff;
+    --bg-secondary: #f7f7f7;
+    --bg-tertiary: #ebebeb;
+    --bg-card: #ffffff;
+    --bg-card-hover: #fcfcfc;
+    --bg-input: #ffffff;
+    --bg-sidebar: #ffffff;
 
     /* Accent Colors */
-    --accent-primary: #4f7cff;
-    --accent-secondary: #7c5cff;
-    --accent-gradient: linear-gradient(135deg, #4f7cff 0%, #7c5cff 50%, #c05cff 100%);
-    --accent-glow: 0 0 20px rgba(79, 124, 255, 0.3);
+    --accent-primary: #ff385c;
+    --accent-secondary: #e00b41;
+    --accent-gradient: #ff385c;
+    --accent-glow: rgba(255, 56, 92, 0.2) 0px 4px 12px;
 
     /* Status Colors */
     --success: #10b981;
-    --success-bg: rgba(16, 185, 129, 0.12);
+    --success-bg: rgba(16, 185, 129, 0.1);
     --warning: #f59e0b;
-    --warning-bg: rgba(245, 158, 11, 0.12);
-    --error: #ef4444;
-    --error-bg: rgba(239, 68, 68, 0.12);
-    --info: #3b82f6;
-    --info-bg: rgba(59, 130, 246, 0.12);
-    --pending: #8b5cf6;
-    --pending-bg: rgba(139, 92, 246, 0.12);
+    --warning-bg: rgba(245, 158, 11, 0.1);
+    --error: #c13515;
+    --error-bg: rgba(193, 53, 21, 0.1);
+    --info: #428bff;
+    --info-bg: rgba(66, 139, 255, 0.1);
+    --pending: #92174d;
+    --pending-bg: rgba(146, 23, 77, 0.1);
 
     /* Text Colors */
-    --text-primary: #e8ecf4;
-    --text-secondary: #8892a8;
-    --text-muted: #555e72;
-    --text-bright: #ffffff;
+    --text-primary: #222222;
+    --text-secondary: #6a6a6a;
+    --text-muted: #929292;
+    --text-bright: #222222;
 
     /* Borders */
-    --border-color: rgba(79, 124, 255, 0.12);
-    --border-color-hover: rgba(79, 124, 255, 0.3);
+    --border-color: #ebebeb;
+    --border-color-hover: #c1c1c1;
 
-    /* Glass Effect */
-    --glass-bg: rgba(15, 20, 50, 0.5);
-    --glass-border: rgba(79, 124, 255, 0.08);
-    --glass-blur: 20px;
+    /* Shadows */
+    --glass-bg: #ffffff;
+    --glass-border: rgba(0,0,0,0.04);
+    --glass-blur: 0px;
+    --shadow-card: rgba(0,0,0,0.02) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 6px, rgba(0,0,0,0.1) 0px 4px 8px;
+    --shadow-hover: rgba(0,0,0,0.08) 0px 4px 12px;
 
     /* Spacing */
     --sidebar-width: 260px;
     --sidebar-collapsed: 72px;
-    --header-height: 64px;
+    --header-height: 80px;
 
     /* Radius */
     --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
-    --radius-xl: 20px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --radius-xl: 32px;
 
     /* Transitions */
     --transition-fast: 0.15s ease;
@@ -79,7 +81,9 @@ html {
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Airbnb Cereal VF', Circular, -apple-system, system-ui, Roboto, 'Helvetica Neue', sans-serif;
+    font-weight: 500;
+    letter-spacing: -0.18px;
     background: var(--bg-primary);
     color: var(--text-primary);
     line-height: 1.6;
@@ -95,19 +99,7 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
 /* ── Background Mesh Gradient ── */
-.bg-mesh {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-    background:
-        radial-gradient(ellipse at 15% 20%, rgba(79, 124, 255, 0.08) 0%, transparent 50%),
-        radial-gradient(ellipse at 85% 80%, rgba(124, 92, 255, 0.06) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 50%, rgba(192, 92, 255, 0.04) 0%, transparent 60%),
-        var(--bg-primary);
-}
+.bg-mesh { display: none; }
 
 /* =========================================
    AUTH PAGE — Login / Signup
@@ -176,7 +168,7 @@ body {
 
 .auth-tab.active {
     background: var(--accent-primary);
-    color: var(--text-bright);
+    color: #222222; font-weight: 700; letter-spacing: -0.44px;
     box-shadow: var(--accent-glow);
 }
 
@@ -254,14 +246,18 @@ textarea.form-input {
 }
 
 .btn-primary {
-    background: var(--accent-gradient);
-    color: var(--text-bright);
-    box-shadow: 0 4px 15px rgba(79, 124, 255, 0.3);
+    background: #ff385c;
+    color: #ffffff;
+    border-radius: var(--radius-sm);
+    box-shadow: none;
+    padding: 0px 24px;
+    height: 48px;
 }
 
 .btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 25px rgba(79, 124, 255, 0.45);
+    background: #e00b41;
+    transform: none;
+    box-shadow: var(--shadow-hover);
 }
 
 .btn-primary:active {
@@ -281,7 +277,7 @@ textarea.form-input {
 
 .btn-danger {
     background: var(--error);
-    color: var(--text-bright);
+    color: #222222; font-weight: 700; letter-spacing: -0.44px;
 }
 
 .btn-ghost {
@@ -441,13 +437,13 @@ textarea.form-input {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: var(--accent-gradient);
+    background: #ff385c;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
     font-size: 0.8rem;
-    color: var(--text-bright);
+    color: #ffffff;
     flex-shrink: 0;
 }
 
@@ -486,7 +482,7 @@ textarea.form-input {
 .page-header h1 {
     font-size: 1.75rem;
     font-weight: 700;
-    color: var(--text-bright);
+    color: #222222; font-weight: 700; letter-spacing: -0.44px;
     margin-bottom: 0.35rem;
 }
 
@@ -499,11 +495,11 @@ textarea.form-input {
    CARDS
    ========================================= */
 .card {
-    background: var(--bg-card);
-    border: 1px solid var(--glass-border);
+    background: #ffffff;
+    border: none;
     border-radius: var(--radius-lg);
     padding: 1.5rem;
-    backdrop-filter: blur(var(--glass-blur));
+    box-shadow: var(--shadow-card);
     transition: var(--transition-normal);
 }
 
@@ -521,7 +517,7 @@ textarea.form-input {
 .card-title {
     font-size: 1rem;
     font-weight: 600;
-    color: var(--text-bright);
+    color: #222222; font-weight: 700; letter-spacing: -0.44px;
 }
 
 .card-subtitle {
@@ -540,11 +536,11 @@ textarea.form-input {
 }
 
 .stat-card {
-    background: var(--bg-card);
-    border: 1px solid var(--glass-border);
+    background: #ffffff;
+    border: none;
     border-radius: var(--radius-lg);
     padding: 1.25rem;
-    backdrop-filter: blur(var(--glass-blur));
+    box-shadow: var(--shadow-card);
     transition: var(--transition-normal);
     position: relative;
     overflow: hidden;
@@ -591,7 +587,7 @@ textarea.form-input {
 .stat-value {
     font-size: 1.8rem;
     font-weight: 700;
-    color: var(--text-bright);
+    color: #222222; font-weight: 700; letter-spacing: -0.44px;
     line-height: 1;
     margin-bottom: 0.35rem;
 }
@@ -1009,7 +1005,7 @@ table tr:hover td {
 .metric-value {
     font-size: 1.15rem;
     font-weight: 700;
-    color: var(--text-bright);
+    color: #222222; font-weight: 700; letter-spacing: -0.44px;
     line-height: 1.2;
     white-space: nowrap;
     overflow: hidden;
@@ -1050,7 +1046,7 @@ table tr:hover td {
 }
 
 .report-text strong {
-    color: var(--text-bright);
+    color: #222222; font-weight: 700; letter-spacing: -0.44px;
 }
 
 .report-text em {
@@ -1253,7 +1249,7 @@ table tr:hover td {
     background: var(--accent-primary);
     border-radius: 3px;
     font-size: 0.65rem;
-    color: var(--text-bright);
+    color: #222222; font-weight: 700; letter-spacing: -0.44px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1321,7 +1317,7 @@ table tr:hover td {
 .settings-section h3 {
     font-size: 1.1rem;
     font-weight: 600;
-    color: var(--text-bright);
+    color: #222222; font-weight: 700; letter-spacing: -0.44px;
     margin-bottom: 1.5rem;
     padding-bottom: 0.75rem;
     border-bottom: 1px solid var(--glass-border);
