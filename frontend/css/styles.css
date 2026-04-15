@@ -67,7 +67,52 @@
     --transition-fast: 0.15s ease;
     --transition-normal: 0.25s ease;
     --transition-slow: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    
+    /* Mesh display */
+    --mesh-display: none;
 }
+[data-theme="dark"] {
+    --bg-primary: #06080f;
+    --bg-secondary: #0c1020;
+    --bg-tertiary: #111631;
+    --bg-card: rgba(15, 20, 45, 0.7);
+    --bg-card-hover: rgba(20, 28, 58, 0.85);
+    --bg-input: rgba(12, 16, 38, 0.8);
+    --bg-sidebar: rgba(8, 12, 28, 0.95);
+
+    --accent-primary: #4f7cff;
+    --accent-secondary: #7c5cff;
+    --accent-gradient: linear-gradient(135deg, #4f7cff 0%, #7c5cff 50%, #c05cff 100%);
+    --accent-glow: 0 0 20px rgba(79, 124, 255, 0.3);
+
+    --success: #10b981;
+    --success-bg: rgba(16, 185, 129, 0.12);
+    --warning: #f59e0b;
+    --warning-bg: rgba(245, 158, 11, 0.12);
+    --error: #ef4444;
+    --error-bg: rgba(239, 68, 68, 0.12);
+    --info: #3b82f6;
+    --info-bg: rgba(59, 130, 246, 0.12);
+    --pending: #8b5cf6;
+    --pending-bg: rgba(139, 92, 246, 0.12);
+
+    --text-primary: #e8ecf4;
+    --text-secondary: #8892a8;
+    --text-muted: #555e72;
+    --text-bright: #ffffff;
+
+    --border-color: rgba(79, 124, 255, 0.12);
+    --border-color-hover: rgba(79, 124, 255, 0.3);
+
+    --glass-bg: rgba(15, 20, 50, 0.5);
+    --glass-border: rgba(79, 124, 255, 0.08);
+    --glass-blur: 20px;
+    --shadow-card: none;
+    --shadow-hover: 0 4px 15px rgba(79, 124, 255, 0.3);
+    
+    --mesh-display: block;
+}
+
 
 /* ── Reset & Base ── */
 *, *::before, *::after {
@@ -99,7 +144,20 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
 /* ── Background Mesh Gradient ── */
-.bg-mesh { display: none; }
+.bg-mesh {
+    display: var(--mesh-display);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background:
+        radial-gradient(ellipse at 15% 20%, rgba(79, 124, 255, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 80%, rgba(124, 92, 255, 0.06) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(192, 92, 255, 0.04) 0%, transparent 60%),
+        var(--bg-primary);
+}
 
 /* =========================================
    AUTH PAGE — Login / Signup
@@ -168,7 +226,9 @@ body {
 
 .auth-tab.active {
     background: var(--accent-primary);
-    color: #222222; font-weight: 700; letter-spacing: -0.44px;
+    color: var(--text-bright);
+    letter-spacing: -0.44px;
+    font-weight: 700;
     box-shadow: var(--accent-glow);
 }
 
@@ -246,18 +306,16 @@ textarea.form-input {
 }
 
 .btn-primary {
-    background: #ff385c;
-    color: #ffffff;
-    border-radius: var(--radius-sm);
-    box-shadow: none;
-    padding: 0px 24px;
-    height: 48px;
+    background: var(--accent-gradient);
+    color: var(--text-bright);
+    letter-spacing: -0.44px;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(79, 124, 255, 0.3);
 }
 
 .btn-primary:hover {
-    background: #e00b41;
-    transform: none;
-    box-shadow: var(--shadow-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 25px rgba(79, 124, 255, 0.45);
 }
 
 .btn-primary:active {
@@ -277,7 +335,9 @@ textarea.form-input {
 
 .btn-danger {
     background: var(--error);
-    color: #222222; font-weight: 700; letter-spacing: -0.44px;
+    color: var(--text-bright);
+    letter-spacing: -0.44px;
+    font-weight: 700;
 }
 
 .btn-ghost {
@@ -437,13 +497,15 @@ textarea.form-input {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: #ff385c;
+    background: var(--accent-gradient);
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
     font-size: 0.8rem;
-    color: #ffffff;
+    color: var(--text-bright);
+    letter-spacing: -0.44px;
+    font-weight: 700;
     flex-shrink: 0;
 }
 
@@ -482,7 +544,9 @@ textarea.form-input {
 .page-header h1 {
     font-size: 1.75rem;
     font-weight: 700;
-    color: #222222; font-weight: 700; letter-spacing: -0.44px;
+    color: var(--text-bright);
+    letter-spacing: -0.44px;
+    font-weight: 700;
     margin-bottom: 0.35rem;
 }
 
@@ -495,10 +559,11 @@ textarea.form-input {
    CARDS
    ========================================= */
 .card {
-    background: #ffffff;
-    border: none;
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
     padding: 1.5rem;
+    backdrop-filter: blur(var(--glass-blur));
     box-shadow: var(--shadow-card);
     transition: var(--transition-normal);
 }
@@ -517,7 +582,9 @@ textarea.form-input {
 .card-title {
     font-size: 1rem;
     font-weight: 600;
-    color: #222222; font-weight: 700; letter-spacing: -0.44px;
+    color: var(--text-bright);
+    letter-spacing: -0.44px;
+    font-weight: 700;
 }
 
 .card-subtitle {
@@ -536,10 +603,11 @@ textarea.form-input {
 }
 
 .stat-card {
-    background: #ffffff;
-    border: none;
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
     padding: 1.25rem;
+    backdrop-filter: blur(var(--glass-blur));
     box-shadow: var(--shadow-card);
     transition: var(--transition-normal);
     position: relative;
@@ -587,7 +655,9 @@ textarea.form-input {
 .stat-value {
     font-size: 1.8rem;
     font-weight: 700;
-    color: #222222; font-weight: 700; letter-spacing: -0.44px;
+    color: var(--text-bright);
+    letter-spacing: -0.44px;
+    font-weight: 700;
     line-height: 1;
     margin-bottom: 0.35rem;
 }
@@ -965,6 +1035,7 @@ table tr:hover td {
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-md);
     backdrop-filter: blur(var(--glass-blur));
+    box-shadow: var(--shadow-card);
     transition: var(--transition-normal);
     position: relative;
     overflow: hidden;
@@ -1005,7 +1076,9 @@ table tr:hover td {
 .metric-value {
     font-size: 1.15rem;
     font-weight: 700;
-    color: #222222; font-weight: 700; letter-spacing: -0.44px;
+    color: var(--text-bright);
+    letter-spacing: -0.44px;
+    font-weight: 700;
     line-height: 1.2;
     white-space: nowrap;
     overflow: hidden;
@@ -1046,7 +1119,9 @@ table tr:hover td {
 }
 
 .report-text strong {
-    color: #222222; font-weight: 700; letter-spacing: -0.44px;
+    color: var(--text-bright);
+    letter-spacing: -0.44px;
+    font-weight: 700;
 }
 
 .report-text em {
@@ -1249,7 +1324,9 @@ table tr:hover td {
     background: var(--accent-primary);
     border-radius: 3px;
     font-size: 0.65rem;
-    color: #222222; font-weight: 700; letter-spacing: -0.44px;
+    color: var(--text-bright);
+    letter-spacing: -0.44px;
+    font-weight: 700;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1317,7 +1394,9 @@ table tr:hover td {
 .settings-section h3 {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #222222; font-weight: 700; letter-spacing: -0.44px;
+    color: var(--text-bright);
+    letter-spacing: -0.44px;
+    font-weight: 700;
     margin-bottom: 1.5rem;
     padding-bottom: 0.75rem;
     border-bottom: 1px solid var(--glass-border);
