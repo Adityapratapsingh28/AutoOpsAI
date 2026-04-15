@@ -28,17 +28,17 @@ class ExecutionLogger:
         
     def log_message(self, message: Message, action: str):
         if action == "SENT":
-            self.log(f"[MESSAGE SENT] {message.sender} → {message.receiver} | {message.performative} | \"{message.content}\"")
+            self.log(f"[MESSAGE SENT] {message.sender} -> {message.receiver} | {message.performative} | \"{message.content}\"")
         elif action == "RECEIVED":
-            self.log(f"[MESSAGE RECEIVED] {message.receiver} ← {message.sender}")
+            self.log(f"[MESSAGE RECEIVED] {message.receiver} <- {message.sender}")
     
     # ── Phase 5: Dialogue Logging ──
     
     def log_dialogue_start(self, agent_a: str, agent_b: str, conv_id: str):
-        self.log(f"[DIALOGUE START] {agent_a} ↔ {agent_b} (conv={conv_id})")
+        self.log(f"[DIALOGUE START] {agent_a} <-> {agent_b} (conv={conv_id})")
     
     def log_dialogue_turn(self, turn: int, sender: str, receiver: str, performative: str):
-        self.log(f"[TURN {turn}] {sender} → {receiver} ({performative})")
+        self.log(f"[TURN {turn}] {sender} -> {receiver} ({performative})")
     
     def log_dialogue_end(self, conv_id: str, turns: int):
         self.log(f"[DIALOGUE END] Converged in {turns} turns (conv={conv_id})")

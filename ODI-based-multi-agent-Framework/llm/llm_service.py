@@ -24,12 +24,15 @@ Given a scenario, design a dynamic multi-agent system that uses specialized tool
 AVAILABLE TOOLS (assign exactly one per agent, or null if the agent only needs LLM reasoning):
 - "csv_export_tool"        → Reads CSV/Excel files, performs statistical analysis, generates analyzed output file
 - "data_summarizer_tool"   → Summarizes any file (CSV, Excel, JSON, TXT, PDF) using LLM — use when user asks to summarize/explain/describe a file
-- "email_tool"             → Sends emails via SMTP. Supports smart recipient resolution:
-                              • Team-based: "send to engineering team" → looks up team_members table
-                              • Person-based: "send to Priyanshu" → looks up user by name
-                              • Direct: "send to john@example.com" → sends directly
-                              • All members: "send to everyone" → all active team members
-                              The tool auto-attaches report/summary content from previous agents.
+- "email_tool"             → Sends emails via SMTP with FILE ATTACHMENT support. Capabilities:
+                              • NLP Recipient Resolution (auto-detects from natural language):
+                                - Team-based: "send to engineering team", "email marketing team", "notify QA" → looks up teams + team_members table
+                                - Person-based: "send to Priyanshu", "email John", "forward to Aditya" → looks up user by name in team_members/users
+                                - Direct email: "send to john@example.com" → sends directly
+                                - All members: "send to everyone", "notify all employees" → all active team members
+                              • Auto-Attachment: Automatically discovers and attaches generated report/analysis files from previous agents
+                              • Auto-Content: Builds email body from previous tool results (summaries, analysis, reports)
+                              • If user says ANYTHING about sending/emailing/forwarding/sharing/notifying a report/summary/file to someone, assign this tool
 - "email_reader_tool"      → Reads/searches inbox emails via IMAP
 - "slack_tool"             → Posts messages to Slack channels
 - "zoom_tool"              → Creates Zoom video meetings
@@ -37,9 +40,22 @@ AVAILABLE TOOLS (assign exactly one per agent, or null if the agent only needs L
 - "sql_tool"               → Runs read-only SQL queries against a database
 - "report_tool"            → Generates a final structured summary report from all agent results (should be the LAST agent)
 
-DATABASE CONTEXT (available for email_tool team resolution):
+DATABASE CONTEXT (available for email_tool recipient resolution):
 - "teams" table: id, name, slug, description, is_active
 - "team_members" table: user_id, team_id, team_name, work_email, phone_number, designation, role, is_active
+- "users" table: id, full_name, email, role, is_active
+
+EMAIL INTENT EXAMPLES (when ANY of these patterns appear, the LLM must assign "email_tool"):
+- "send the report to engineering team"
+- "email the summary to Priyanshu"
+- "share this with the backend team"
+- "forward the analysis to all members"
+- "notify the design team about this"
+- "send it to john@company.com"
+- "email everyone the results"
+- "send the generated file to QA team"
+- "summarize and send to marketing"
+- "analyze and email to Aditya"
 
 Return strictly valid JSON with:
 
@@ -60,12 +76,13 @@ IMPORTANT RULES:
 - Every workflow MUST have at least one agent that uses a real tool. Do NOT create agents that all have null tools.
 - If the user mentions analyzing a file/CSV/data, assign "csv_export_tool" to the analysis agent.
 - If the user asks to summarize, explain, or describe a file, assign "data_summarizer_tool".
-- If the user asks to email/send a report/summary to a team or person, assign "email_tool" to an email agent.
-  Include the team name or person name in the agent's responsibilities (e.g., "Send the generated report to the engineering team").
-  The email_tool will auto-resolve recipients from the database and auto-attach content from previous agents.
+- If the user asks to email/send/forward/share/notify a report/summary/file to a team, person, or email address, assign "email_tool" to an email agent.
+  ALWAYS include the target recipient (team name, person name, or email) in the agent's responsibilities.
+  Example: "Send the generated report with file attachment to the engineering team"
+  The email_tool will auto-resolve recipients from the database, build the email body from prior results, and attach any generated files.
 - If multiple tasks are requested (e.g., summarize + email), create separate agents for each with the appropriate tool.
-  The email agent should depend on the summarizer/analysis agent so it receives the content to send.
-- The last agent should typically use "report_tool" to compile a final summary.
+  The email agent MUST depend on the summarizer/analysis agent so it receives the output content and files to send.
+- The last agent should typically use "report_tool" to compile a final summary. Place the email agent BEFORE the report agent if emailing is requested.
 - "dependencies" must ONLY contain names of OTHER agents in the list.
 - Do NOT create circular dependencies. Dependencies must form a valid DAG.
 - At least one agent must have an empty dependencies list (the starting agent).

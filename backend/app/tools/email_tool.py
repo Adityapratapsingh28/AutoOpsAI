@@ -1,19 +1,28 @@
 """
 AutoOps AI — Email Tool.
 
-Sends emails via SMTP with smart recipient resolution.
+Sends emails via SMTP with smart recipient resolution and report file attachment.
 Supports:
   - Direct email addresses
-  - Team-based lookup ("send to engineering team")
-  - Person name lookup ("send to John", "send to Priyanshu")
-  - Uses previous_tool_results to attach generated reports/summaries
+  - Team-based lookup ("send to engineering team") → queries teams + team_members
+  - Person name lookup ("send to John", "send to Priyanshu") → queries team_members + users
+  - Auto-attaches generated report files from previous tool outputs
+  - NLP-based intent extraction for natural language prompts
+
+Database Schema Used:
+  - teams (id, name, slug, description, is_active)
+  - team_members (user_id, team_id, team_name, work_email, phone_number, designation, role, is_active)
+  - users (id, full_name, email, is_active)
 """
 
+import os
 import re
 import logging
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
 from typing import Any, Dict, List, Optional, Tuple
 
 from .base_tool import BaseTool
@@ -23,11 +32,11 @@ logger = logging.getLogger("autoops.tools.email")
 
 class EmailTool(BaseTool):
     name = "email_tool"
-    description = "Sends emails via SMTP with team/person resolution from database"
+    description = "Sends emails via SMTP with team/person resolution from database and file attachment"
 
     def run(self, input_data: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Send an email with smart recipient resolution.
+        Send an email with smart recipient resolution and optional file attachment.
 
         input_data:
             - llm_summary: The agent's LLM reasoning (contains recipient hints)
@@ -69,7 +78,17 @@ class EmailTool(BaseTool):
         if not subject:
             subject = self._generate_subject(input_text, prev_results)
 
-        # ── 3. Send emails ──
+        # ── 3. Discover report file to attach ──
+        attachment_path, attachment_name = self._find_report_file(prev_results, context)
+        if attachment_path:
+            resolution_log.append(f"Report file found for attachment: {attachment_name}")
+        else:
+            resolution_log.append("No report file found — sending email with body text only")
+
+        # ── 4. Build HTML body ──
+        html_body = self._build_html_body(body, subject)
+
+        # ── 5. Send emails ──
         if not settings.SMTP_USER or not settings.SMTP_PASS:
             logger.warning("SMTP credentials not configured — simulating email send")
             return {
@@ -80,6 +99,8 @@ class EmailTool(BaseTool):
                 "recipients": recipients,
                 "recipient_count": len(recipients),
                 "resolution_log": resolution_log,
+                "has_attachment": attachment_path is not None,
+                "attachment_name": attachment_name,
                 "body_snippet": body[:200] + "..." if len(body) > 200 else body,
             }
 
@@ -95,7 +116,10 @@ class EmailTool(BaseTool):
                     smtp_pass=settings.SMTP_PASS,
                     to_email=recipient,
                     subject=subject,
-                    body=body,
+                    plain_body=body,
+                    html_body=html_body,
+                    attachment_path=attachment_path,
+                    attachment_name=attachment_name,
                 )
                 sent_to.append(recipient)
                 logger.info(f"Email sent to: {recipient}")
@@ -111,6 +135,8 @@ class EmailTool(BaseTool):
                 "recipients": sent_to,
                 "recipient_count": len(sent_to),
                 "subject": subject,
+                "has_attachment": attachment_path is not None,
+                "attachment_name": attachment_name,
                 "resolution_log": resolution_log,
                 "errors": errors if errors else None,
             }
@@ -138,16 +164,21 @@ class EmailTool(BaseTool):
 
         Resolution order:
           1. Direct email address in input
-          2. Team name → lookup team_members table
-          3. Person name → lookup team_members/users table
-          4. Fallback to user's own email
+          2. Team name → lookup teams + team_members table
+          3. Person name → lookup team_members + users table
+          4. "all members" / "everyone" → all active team members
+          5. Fallback to user's own email
 
         Returns:
             (list of email addresses, resolution log messages)
         """
         log = []
         recipients = set()
-        combined_text = f"{input_text} {llm_summary}".lower()
+
+        # Use lowered text for keyword matching
+        combined_lower = f"{input_text} {llm_summary}".lower()
+        # Keep original case for name extraction
+        combined_original = f"{input_text} {llm_summary}"
 
         # ── Step 1: Check for direct email addresses ──
         if direct_to and "@" in direct_to:
@@ -168,7 +199,7 @@ class EmailTool(BaseTool):
             return list(recipients), log
 
         # ── Step 2: Check for team-based sending ──
-        team_name = self._extract_team_name(combined_text)
+        team_name = self._extract_team_name(combined_lower)
         if team_name:
             log.append(f"Team name detected: '{team_name}'")
             team_emails = self._lookup_team_emails(team_name, context)
@@ -180,7 +211,7 @@ class EmailTool(BaseTool):
 
         # ── Step 3: Check for person name ──
         if not recipients:
-            person_names = self._extract_person_names(combined_text)
+            person_names = self._extract_person_names(combined_original)
             if person_names:
                 for name in person_names:
                     log.append(f"Person name detected: '{name}'")
@@ -193,8 +224,12 @@ class EmailTool(BaseTool):
 
         # ── Step 4: Check for "all members" / "everyone" ──
         if not recipients:
-            all_keywords = ["all members", "everyone", "all employees", "all team members", "all teams", "entire team"]
-            if any(kw in combined_text for kw in all_keywords):
+            all_keywords = [
+                "all members", "everyone", "all employees", "all team members",
+                "all teams", "entire team", "whole team", "every member",
+                "all the members", "each member", "complete team",
+            ]
+            if any(kw in combined_lower for kw in all_keywords):
                 log.append("Detected 'all members' intent — fetching all active team members")
                 all_emails = self._lookup_all_member_emails(context)
                 if all_emails:
@@ -228,8 +263,9 @@ class EmailTool(BaseTool):
           - "share with backend team"
           - "send to all members in design team"
           - "notify the QA team"
+          - "send report to engineering"
+          - "email engineering department"
         """
-        # Pattern: "[action] ... [team_name] team"
         patterns = [
             # "send/email/share ... to/with [X] team"
             r'(?:send|email|share|forward|deliver|distribute|notify|inform|cc|broadcast)\s+(?:.*?\s+)?(?:to|with|for)\s+(?:all\s+(?:members?\s+(?:in|of|from)\s+)?)?(?:the\s+)?["\']?(\w[\w\s]*?)["\']?\s+team',
@@ -239,6 +275,11 @@ class EmailTool(BaseTool):
             r'team\s+["\']?(\w[\w\s]*?)["\']?(?:\s|$|,|\.)',
             # "members of/in [X]"
             r'members?\s+(?:of|in|from)\s+(?:the\s+)?["\']?(\w[\w\s]*?)["\']?(?:\s+team)?(?:\s|$|,|\.)',
+            # "send to [X] department"
+            r'(?:send|email|share|forward)\s+(?:.*?\s+)?(?:to|with)\s+(?:the\s+)?["\']?(\w[\w\s]*?)["\']?\s+(?:department|group|division)',
+            # "send/email to [known-team-name]" (without "team" suffix)
+            # Catches: "send report to engineering", "email marketing"
+            r'(?:send|email|share|forward|deliver|notify)\s+(?:.*?\s+)?(?:to|with)\s+(?:the\s+)?(\w+)(?:\s|$|,|\.)',
         ]
 
         for pattern in patterns:
@@ -246,7 +287,12 @@ class EmailTool(BaseTool):
             if match:
                 team = match.group(1).strip()
                 # Filter out common false positives
-                stop_words = {"the", "a", "an", "my", "our", "your", "this", "that", "all", "each", "every"}
+                stop_words = {
+                    "the", "a", "an", "my", "our", "your", "this", "that", "all",
+                    "each", "every", "me", "him", "her", "them", "it", "report",
+                    "summary", "file", "data", "csv", "pdf", "email", "message",
+                    "result", "output", "analysis", "results",
+                }
                 if team.lower() not in stop_words and len(team) > 1:
                     return team
 
@@ -255,29 +301,51 @@ class EmailTool(BaseTool):
     def _extract_person_names(self, text: str) -> List[str]:
         """
         Extract person names from natural language text.
+        Uses ORIGINAL-CASE text so capitalized name patterns match correctly.
 
         Handles patterns like:
           - "send to John"
           - "email Priyanshu"
-          - "share the report with Aditya"
+          - "share the report with Aditya Singh"
+          - "send it to priyanshu" (case-insensitive fallback)
         """
         names = []
 
-        patterns = [
-            # "send/email ... to [Name]"
-            r'(?:send|email|share|forward|deliver|notify)\s+(?:.*?\s+)?(?:to|with)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)',
+        # Pattern 1: Capitalized names after action words (high confidence)
+        capitalized_patterns = [
+            # "send/email ... to [Name]" or "send/email ... to [First Last]"
+            r'(?:send|email|share|forward|deliver|notify|inform)\s+(?:.*?\s+)?(?:to|with)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)',
         ]
 
-        # Run on original-case text for proper name detection
-        for pattern in patterns:
-            matches = re.findall(pattern, text, re.IGNORECASE)
+        for pattern in capitalized_patterns:
+            matches = re.findall(pattern, text)
             for name in matches:
                 name = name.strip()
-                # Filter out common false positives
-                stop_words = {"the", "all", "each", "every", "team", "members", "everyone",
-                              "file", "report", "summary", "data", "csv", "email"}
-                if name.lower() not in stop_words and len(name) > 1:
+                stop_words = {
+                    "The", "All", "Each", "Every", "Team", "Members", "Everyone",
+                    "File", "Report", "Summary", "Data", "Csv", "Pdf", "Email",
+                }
+                if name not in stop_words and len(name) > 1:
                     names.append(name)
+
+        # Pattern 2: Case-insensitive fallback — catches "send to priyanshu"
+        if not names:
+            ci_patterns = [
+                r'(?:send|email|share|forward|deliver|notify)\s+(?:.*?\s+)?(?:to|with)\s+([a-zA-Z]{3,}(?:\s+[a-zA-Z]{3,})?)',
+            ]
+            for pattern in ci_patterns:
+                matches = re.findall(pattern, text, re.IGNORECASE)
+                for name in matches:
+                    name = name.strip()
+                    stop_words = {
+                        "the", "all", "each", "every", "team", "members", "everyone",
+                        "file", "report", "summary", "data", "csv", "pdf", "email",
+                        "engineering", "marketing", "sales", "design", "backend",
+                        "frontend", "devops", "results", "analysis", "output",
+                        "message", "entire", "whole", "complete", "department",
+                    }
+                    if name.lower() not in stop_words and len(name) > 2:
+                        names.append(name)
 
         return names
 
@@ -319,7 +387,7 @@ class EmailTool(BaseTool):
         try:
             from ..core.database import fetch_val
 
-            # Try team_members first (has work_email)
+            # Try team_members first (has work_email — preferred for work comms)
             email = self._run_async(
                 fetch_val(
                     """
@@ -382,6 +450,61 @@ class EmailTool(BaseTool):
             return []
 
     # ─────────────────────────────────────────────
+    # REPORT FILE DISCOVERY
+    # ─────────────────────────────────────────────
+
+    def _find_report_file(
+        self,
+        prev_results: Dict[str, Any],
+        context: Dict[str, Any],
+    ) -> Tuple[Optional[str], Optional[str]]:
+        """
+        Discover the generated report file from previous tool results.
+
+        Searches for:
+          1. output_file path from csv_export_tool results
+          2. File from data_summarizer_tool (written summary files)
+          3. File from report_tool output
+          4. The original uploaded file (if no generated output found)
+
+        Returns:
+            (file_path, file_name) or (None, None)
+        """
+        # Priority 1: Look for generated output files in previous tool results
+        for agent_name, result in prev_results.items():
+            if not isinstance(result, dict):
+                continue
+
+            # csv_export_tool writes analysed output files
+            output_file = result.get("output_file")
+            if output_file and os.path.isfile(output_file):
+                return output_file, os.path.basename(output_file)
+
+            # Check for any file_path in the result
+            file_path = result.get("file_path")
+            if file_path and os.path.isfile(file_path):
+                return file_path, os.path.basename(file_path)
+
+        # Priority 2: Look up the original uploaded file from DB
+        file_id = context.get("file_id")
+        if file_id:
+            try:
+                from ..core.database import fetch_one
+                row = self._run_async(
+                    fetch_one(
+                        "SELECT file_name, file_path FROM files WHERE id = $1",
+                        int(file_id),
+                    ),
+                    context,
+                )
+                if row and row["file_path"] and os.path.isfile(row["file_path"]):
+                    return row["file_path"], row["file_name"]
+            except Exception as e:
+                logger.warning(f"Could not look up file {file_id}: {e}")
+
+        return None, None
+
+    # ─────────────────────────────────────────────
     # EMAIL BODY & SUBJECT GENERATION
     # ─────────────────────────────────────────────
 
@@ -391,7 +514,7 @@ class EmailTool(BaseTool):
         llm_summary: str,
         input_text: str,
     ) -> str:
-        """Build email body from previous tool results (report, summary, etc.)."""
+        """Build plain-text email body from previous tool results (report, summary, etc.)."""
         parts = []
         parts.append("Hi,\n")
         parts.append("Please find the automated report generated by AutoOps AI below:\n")
@@ -439,6 +562,39 @@ class EmailTool(BaseTool):
 
         return "\n".join(parts)
 
+    def _build_html_body(self, plain_body: str, subject: str) -> str:
+        """Convert the plain-text body into a styled HTML email."""
+        # Escape HTML characters in the body text
+        body_html = plain_body.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        # Convert newlines to <br> tags
+        body_html = body_html.replace("\n", "<br>")
+        # Bold the separator lines
+        body_html = body_html.replace("=" * 60, "<hr style='border:1px solid #e0e0e0;'>")
+
+        return f"""<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+             max-width: 700px; margin: 0 auto; padding: 20px; color: #333;">
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 12px; padding: 24px; margin-bottom: 24px; color: white;">
+        <h1 style="margin: 0; font-size: 22px;">⚡ AutoOps AI Report</h1>
+        <p style="margin: 8px 0 0; opacity: 0.9; font-size: 14px;">{subject}</p>
+    </div>
+
+    <div style="background: #fafafa; border-radius: 8px; padding: 20px;
+                border: 1px solid #e8e8e8; line-height: 1.6; font-size: 14px;">
+        {body_html}
+    </div>
+
+    <div style="margin-top: 24px; padding: 16px; background: #f0f4ff;
+                border-radius: 8px; font-size: 12px; color: #555;">
+        <p style="margin: 0;">This email was generated by <strong>AutoOps AI</strong> — Enterprise Workflow Automation Platform</p>
+        <p style="margin: 4px 0 0; opacity: 0.7;">If a report file was generated, it is attached to this email.</p>
+    </div>
+</body>
+</html>"""
+
     def _generate_subject(self, input_text: str, prev_results: Dict[str, Any]) -> str:
         """Generate a descriptive email subject from context."""
         # Check if there's a file name in previous results
@@ -456,7 +612,7 @@ class EmailTool(BaseTool):
         return "AutoOps AI — Automated Workflow Report"
 
     # ─────────────────────────────────────────────
-    # SMTP SENDING
+    # SMTP SENDING (with file attachment support)
     # ─────────────────────────────────────────────
 
     @staticmethod
@@ -467,14 +623,50 @@ class EmailTool(BaseTool):
         smtp_pass: str,
         to_email: str,
         subject: str,
-        body: str,
+        plain_body: str,
+        html_body: str = "",
+        attachment_path: Optional[str] = None,
+        attachment_name: Optional[str] = None,
     ):
-        """Send a single email via SMTP."""
-        msg = MIMEMultipart("alternative")
-        msg["From"] = smtp_user
+        """
+        Send a single email via SMTP with optional file attachment.
+
+        Sends a multipart/mixed email with:
+          - Plain text fallback
+          - HTML body (styled)
+          - File attachment (if provided)
+        """
+        msg = MIMEMultipart("mixed")
+        msg["From"] = f"AutoOps AI <{smtp_user}>"
         msg["To"] = to_email
         msg["Subject"] = subject
-        msg.attach(MIMEText(body, "plain"))
+
+        # Build the text/html alternative part
+        text_part = MIMEMultipart("alternative")
+        text_part.attach(MIMEText(plain_body, "plain", "utf-8"))
+        if html_body:
+            text_part.attach(MIMEText(html_body, "html", "utf-8"))
+        msg.attach(text_part)
+
+        # Attach report file if available
+        if attachment_path and os.path.isfile(attachment_path):
+            try:
+                with open(attachment_path, "rb") as f:
+                    file_data = f.read()
+
+                part = MIMEBase("application", "octet-stream")
+                part.set_payload(file_data)
+                encoders.encode_base64(part)
+
+                fname = attachment_name or os.path.basename(attachment_path)
+                part.add_header(
+                    "Content-Disposition",
+                    f"attachment; filename=\"{fname}\"",
+                )
+                msg.attach(part)
+                logger.info(f"Attached file: {fname} ({len(file_data)} bytes)")
+            except Exception as e:
+                logger.warning(f"Failed to attach file {attachment_path}: {e}")
 
         with smtplib.SMTP(smtp_host, smtp_port) as server:
             server.starttls()
