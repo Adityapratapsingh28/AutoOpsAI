@@ -125,7 +125,7 @@ async function runWorkflow() {
         addLog('Failed to start workflow: ' + err.message, 'error');
         showToast('Workflow start failed: ' + err.message, 'error');
         runBtn.disabled = false;
-        runBtn.innerHTML = '⚡ Run Workflow';
+        runBtn.innerHTML = 'Run Workflow';
     }
 }
 
@@ -234,7 +234,7 @@ function handleSSEEvent(eventType, data) {
 function onWorkflowComplete(isError) {
     const runBtn = document.getElementById('runBtn');
     runBtn.disabled = false;
-    runBtn.innerHTML = '⚡ Run Workflow';
+    runBtn.innerHTML = 'Run Workflow';
 
     document.getElementById('logStatus').innerHTML = isError
         ? '<span class="badge badge-error"><span class="badge-dot"></span> Error</span>'

@@ -80,10 +80,10 @@
     --bg-input: rgba(12, 16, 38, 0.8);
     --bg-sidebar: rgba(8, 12, 28, 0.95);
 
-    --accent-primary: #4f7cff;
-    --accent-secondary: #7c5cff;
-    --accent-gradient: linear-gradient(135deg, #4f7cff 0%, #7c5cff 50%, #c05cff 100%);
-    --accent-glow: 0 0 20px rgba(79, 124, 255, 0.3);
+    --accent-primary: #00e5ff;
+    --accent-secondary: #00ff88;
+    --accent-gradient: linear-gradient(135deg, #00e5ff 0%, #00a2ff 50%, #00ff88 100%);
+    --accent-glow: 0 0 20px rgba(0, 229, 255, 0.3);
 
     --success: #10b981;
     --success-bg: rgba(16, 185, 129, 0.12);
