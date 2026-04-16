@@ -217,3 +217,5 @@ To protect against brute-force attacks and credential stuffing, we implemented a
 *   **Database Level**: Dynamic `otp_codes` table to securely track rolling 6-digit codes and their 5-minute expiration windows. 
 *   **Backend Level**: `backend/app/routes/auth.py` halts standard JWT issuance upon login, asynchronously sends an SMTP email (`send_otp_email`), and requires explicit `/verify-otp` confirmation. The `otp_verified` flag is cryptographically embedded into the session token via `backend/app/core/security.py`.
 *   **Frontend Level**: `frontend-react/src/pages/OTPVerification.jsx` catches the MFA signal and visually renders a secure code-entry portal to intercept unauthorized access.
+
+test = analyse the csv, and send the report to my engineering & sales team, arrange a meeting with them on 20 april 9 pm , agenda is langchain

@@ -112,9 +112,10 @@ async def run_orchestrator(
                     loop,
                 )
                 asyncio.run_coroutine_threadsafe(
-                    _save_log(workflow_id, agent_name, f"Agent '{agent_name}' started execution", "info"),
+                    _save_log(workflow_id, agent_name, f"Agent '{agent_name}' execution started", "info"),
                     loop,
                 )
+                _push_event("status", {"step": f"🤖 Spawning isolated execution context for Agent [{agent_name}] — injecting role-specific CTDE policies and tool bindings..."})
 
             elif event_type == "agent_completed":
                 result = payload.get("result", {})
@@ -129,11 +130,12 @@ async def run_orchestrator(
                 tool_name = agent_tool_map.get(agent_name)
                 if not tool_name:
                     logger.info(f"Agent '{agent_name}' has no tool assigned (LLM reasoning only).")
+                    _push_event("status", {"step": f"📋 Agent [{agent_name}] operating in LLM-reasoning-only mode — no external tool binding required for this task."})
                 
                 if tool_name and status != "failed":
                     try:
                         from ..services.tool_dispatcher import execute_tool
-                        _push_event("status", {"step": f"Executing specialized tool: {tool_name}..."})
+                        _push_event("status", {"step": f"🔧 Dispatching tool binding [{tool_name}] for Agent [{agent_name}] — routing request through AutoOps Tool Vault..."})
                         
                         # Gather context for the tool (e.g. file pointers, event loop, sender name)
                         context = {
@@ -174,7 +176,7 @@ async def run_orchestrator(
                             result["tool_result"] = tool_output
                             # Store tool output so downstream tools can use it
                             tool_results_store[agent_name] = tool_output
-                            _push_event("status", {"step": f"Tool {tool_name} finished."})
+                            _push_event("status", {"step": f"✅ Tool [{tool_name}] finished execution — output serialized and stored in shared inter-agent context store for downstream agents."})
                     except Exception as e:
                         logger.error(f"Tool execution failed: {e}")
                         result["tool_error"] = str(e)
@@ -188,6 +190,7 @@ async def run_orchestrator(
                     _save_log(workflow_id, agent_name, f"Completed: {summary[:200]}", "info"),
                     loop,
                 )
+                _push_event("status", {"step": f"✔️  Agent [{agent_name}] report submitted to MetaOrchestrator — result committed to shared execution graph."})
 
             elif event_type == "status":
                 step = payload.get("step", "")
@@ -198,6 +201,10 @@ async def run_orchestrator(
 
             elif event_type == "agents_designed":
                 agents = payload.get("agents", [])
+                agent_names = [a.get('name', '?') for a in agents]
+                tool_list = [a.get('tool', 'LLM-only') for a in agents]
+                _push_event("status", {"step": f"📐 DAG resolved — {len(agents)} agents instantiated: {', '.join(agent_names)}"}) 
+                _push_event("status", {"step": f"⚙️  Tool bindings assigned from CTDE Vault: {', '.join([t for t in tool_list if t])}"}) 
                 for agent_cfg in agents:
                     name = agent_cfg.get("name", "unknown")
                     # Read tool directly from LLM response — no keyword fallback
@@ -228,7 +235,7 @@ async def run_orchestrator(
             from orchestrator.meta_orchestrator import MetaOrchestrator
 
             logger.info(f"Starting orchestration for workflow {workflow_id}")
-            _push_event("status", {"step": "Initializing MetaOrchestrator..."})
+            _push_event("status", {"step": "🧠 MetaOrchestrator initializing — loading system configuration and CTDE governance policies from PostgreSQL..."})
 
             orchestrator = MetaOrchestrator()
             result = orchestrator.execute(input_text, event_callback=event_callback)

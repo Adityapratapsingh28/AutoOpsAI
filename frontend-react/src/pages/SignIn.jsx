@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
 
 const API_BASE = 'http://127.0.0.1:8000/api';
 
@@ -94,6 +95,76 @@ export default function SignIn() {
         }
     };
 
+    const handleGoogleSuccess = async (credentialResponse) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await fetch(`${API_BASE}/auth/google`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ credential: credentialResponse.credential })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || 'Google login failed');
+
+            localStorage.setItem('autoops_token', data.access_token);
+            localStorage.setItem('autoops_user', JSON.stringify({
+                user_id: data.user_id,
+                role: data.role,
+                full_name: data.full_name,
+            }));
+
+            if (data.role === 'manager' || data.role === 'admin') {
+                navigate('/manager/dashboard');
+            } else {
+                navigate('/dashboard');
+            }
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGoogleSignup = async (credentialResponse) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await fetch(`${API_BASE}/auth/google`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    credential: credentialResponse.credential,
+                    role: signupRole  // Pass the selected role for new accounts
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || 'Google signup failed');
+
+            localStorage.setItem('autoops_token', data.access_token);
+            localStorage.setItem('autoops_user', JSON.stringify({
+                user_id: data.user_id,
+                role: data.role,
+                full_name: data.full_name,
+            }));
+
+            if (data.role === 'manager' || data.role === 'admin') {
+                navigate('/manager/dashboard');
+            } else {
+                navigate('/dashboard');
+            }
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGoogleError = () => {
+        console.log("🔴 Google Login Failed");
+        setError("Failed to authenticate with Google. Please try again.");
+    };
+
     return (
         <React.Fragment>
             <div className="auth-container">
@@ -131,6 +202,22 @@ export default function SignIn() {
                             <button type="submit" className="btn btn-primary btn-full btn-lg" disabled={loading}>
                                 {loading ? 'Signing in...' : 'Sign In'}
                             </button>
+
+                            <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0', color: '#6a6a6a', fontSize: '13px' }}>
+                                <div style={{ flex: 1, height: '1px', background: '#e8e8e8' }}></div>
+                                <span style={{ padding: '0 10px' }}>OR CONTINUE WITH</span>
+                                <div style={{ flex: 1, height: '1px', background: '#e8e8e8' }}></div>
+                            </div>
+                            
+                            <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                <GoogleLogin
+                                    onSuccess={handleGoogleSuccess}
+                                    onError={handleGoogleError}
+                                    theme="outline"
+                                    size="large"
+                                    width="100%"
+                                />
+                            </div>
                         </form>
                     )}
 
@@ -168,6 +255,25 @@ export default function SignIn() {
                             <button type="submit" className="btn btn-primary btn-full btn-lg" disabled={loading}>
                                 {loading ? 'Creating account...' : 'Create Account'}
                             </button>
+
+                            <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0', color: '#6a6a6a', fontSize: '13px' }}>
+                                <div style={{ flex: 1, height: '1px', background: '#e8e8e8' }}></div>
+                                <span style={{ padding: '0 10px' }}>OR SIGN UP WITH</span>
+                                <div style={{ flex: 1, height: '1px', background: '#e8e8e8' }}></div>
+                            </div>
+                            <p style={{ fontSize: '11px', color: '#6a6a6a', textAlign: 'center', marginTop: '-12px', marginBottom: '8px' }}>
+                                Role "{signupRole}" will be assigned to your Google account
+                            </p>
+                            <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                <GoogleLogin
+                                    onSuccess={handleGoogleSignup}
+                                    onError={handleGoogleError}
+                                    theme="outline"
+                                    size="large"
+                                    width="100%"
+                                    text="signup_with"
+                                />
+                            </div>
                         </form>
                     )}
 

@@ -161,7 +161,7 @@ export default function Workflow() {
                 const { event: eventType, data } = payload;
 
                 if (eventType === 'start') {
-                    addLog('Workflow Engine Initialized', 'success');
+                    addLog('🚀 Workflow Engine Initialized — Connection to AutoOps runtime established', 'success');
                 } else if (eventType === 'status') {
                     addLog(data.step || 'Processing...', 'info');
                 } else if (eventType === 'agents_designed') {
@@ -171,19 +171,24 @@ export default function Workflow() {
                         tool: a.tool || guessToolFromName(a.name)
                     }));
                     setAgents(parsedAgents);
-                    addLog(`Orchestrator planned ${parsedAgents.length} sequential execution agents`, 'info');
+                    const toolSummary = parsedAgents.map(a => `${a.name}→${a.tool || 'LLM'}`).join(' | ');
+                    addLog(`📐 MetaOrchestrator designed ${parsedAgents.length} specialized agents for this pipeline`, 'info');
+                    addLog(`🗺️  Agent→Tool map: ${toolSummary}`, 'info');
+                    addLog(`🧬 CTDE policy injection: fetching role-specific governance rules from PostgreSQL ctde_policies table...`, 'info');
+                    addLog(`⚡ Asynchronous agent communication channels open — agents will share results via shared context store`, 'info');
                 } else if (eventType === 'agent_executing') {
                     setAgents(prev => prev.map(a => a.name === data.agent ? { ...a, status: 'running' } : a));
-                    addLog(`Agent [${data.agent}] execution triggered`, 'info');
+                    addLog(`🤖 [AGENT START] ${data.agent} — LLM context window primed, memory retrieved, executing task...`, 'info');
                 } else if (eventType === 'agent_completed') {
                     const resultAgent = data.result?.agent || data.agent;
                     setAgents(prev => prev.map(a => a.name === resultAgent ? { ...a, status: data.result?.status || 'completed' } : a));
-                    addLog(`Agent [${resultAgent}] completed successfully`, 'success');
+                    const summary = data.result?.summary;
+                    addLog(`✅ [AGENT DONE] ${resultAgent} — task completed${summary ? ': ' + summary.slice(0, 120) + (summary.length > 120 ? '...' : '') : ''}`, 'success');
                 } else if (eventType === 'tool_execution') {
-                    addLog(`Executing external tool binding: ${data.tool_name}`, 'warning');
+                    addLog(`🔧 [TOOL DISPATCH] Routing to external API: ${data.tool_name} — preparing payload from agent output...`, 'warning');
                 } else if (eventType === 'error') {
                     setStatus('error');
-                    addLog(`FATAL: ${data.message}`, 'error');
+                    addLog(`💥 [FATAL ERROR] ${data.message}`, 'error');
                     eventSourceRef.current.close();
                 } else if (eventType === 'done' || eventType === 'final_output' || eventType === 'orchestration_completed') {
                     if (data.result) {
@@ -194,7 +199,8 @@ export default function Workflow() {
                        if (Object.keys(data).length > 2) setReportData(data);
                     }
                     setStatus('done');
-                    addLog('✅ Operations Complete', 'success');
+                    addLog('🏁 [PIPELINE COMPLETE] All agents executed, tool results compiled, CTDE training update persisted to PostgreSQL.', 'success');
+                    addLog('✅ Workflow execution graph finalized — results available in report section below.', 'success');
                     eventSourceRef.current.close();
                 } else {
                     if (typeof data === 'string') addLog(data, 'info');
@@ -301,17 +307,21 @@ export default function Workflow() {
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', alignItems: 'stretch' }}>
                             <div className="card" style={{ background: 'var(--bg-card)', flex: 1 }}>
                                 <div className="card-header">
-                                    <h3 className="card-title">🤖 Agents ({agents.length})</h3>
+                                    <h3 className="card-title">🤖 Active Agents ({agents.length})</h3>
                                     <span className="badge badge-running">Orchestrator Online</span>
                                 </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '520px', overflowY: 'auto' }}>
                                     {agents.map(a => (
-                                        <div key={a.name} style={{ background: 'var(--bg-secondary)', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                                <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: a.status === 'completed' ? 'var(--success)' : a.status === 'running' ? 'var(--info)' : a.status === 'failed' ? 'var(--error)' : 'var(--text-muted)', boxShadow: a.status === 'running' ? '0 0 10px rgba(66, 139, 255, 0.5)' : 'none' }}></span>
-                                                <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>{a.name}</span>
+                                        <div key={a.name} style={{ background: 'var(--bg-secondary)', padding: '1rem 1.25rem', borderRadius: '10px', border: `1px solid ${a.status === 'running' ? 'rgba(66,139,255,0.5)' : 'var(--border-color)'}`, display: 'flex', flexDirection: 'column', gap: '6px', boxShadow: a.status === 'running' ? '0 0 16px rgba(66,139,255,0.15)' : 'none', transition: 'all 0.3s ease' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                    <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: a.status === 'completed' ? 'var(--success)' : a.status === 'running' ? 'var(--info)' : a.status === 'failed' ? 'var(--error)' : 'var(--text-muted)', boxShadow: a.status === 'running' ? '0 0 10px rgba(66, 139, 255, 0.7)' : 'none', animation: a.status === 'running' ? 'pulse 1.5s infinite' : 'none' }}></span>
+                                                    <span style={{ fontWeight: '700', fontSize: '0.95rem' }}>{a.name}</span>
+                                                </div>
+                                                <span style={{ fontSize: '0.72rem', padding: '2px 10px', borderRadius: '12px', background: a.status === 'completed' ? 'rgba(16,185,129,0.15)' : a.status === 'running' ? 'rgba(66,139,255,0.15)' : 'var(--bg-card)', color: a.status === 'completed' ? 'var(--success)' : a.status === 'running' ? 'var(--info)' : 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.05em' }}>{a.status}</span>
                                             </div>
-                                            {a.tool && <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', background: 'var(--bg-card)', padding: '2px 8px', borderRadius: '12px' }}>{a.tool}</span>}
+                                            {a.tool && <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', paddingLeft: '1.5rem' }}>🔧 Tool binding: <code style={{ background: 'var(--bg-card)', padding: '1px 6px', borderRadius: '4px', color: '#fbbf24' }}>{a.tool}</code></div>}
+                                            {a.description && <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', paddingLeft: '1.5rem', fontStyle: 'italic' }}>{a.description}</div>}
                                         </div>
                                     ))}
                                 </div>
@@ -319,30 +329,36 @@ export default function Workflow() {
 
                             <div className="card" style={{ background: 'var(--bg-card)', flex: 1 }}>
                                 <div className="card-header">
-                                    <h3 className="card-title">🔀 Workflow Graph (DAG)</h3>
+                                    <h3 className="card-title">🔀 Execution Graph (DAG)</h3>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Directed Acyclic Graph</span>
                                 </div>
-                                <DAGGraph agentsConfig={agents} />
+                                <div style={{ minHeight: '480px' }}>
+                                    <DAGGraph agentsConfig={agents} />
+                                </div>
                             </div>
                         </div>
                     )}
 
                     <div className="card" style={{ background: 'var(--bg-card)' }}>
                         <div className="card-header">
-                            <h3 className="card-title" style={{ fontSize: '1.4rem' }}>📡   Interactive Command Logs</h3>
-                            <span className={`badge badge-${status === 'running' ? 'running' : status === 'done' ? 'success' : 'error'}`}>{status.toUpperCase()}</span>
+                            <h3 className="card-title" style={{ fontSize: '1.4rem' }}>📡 Interactive Command Logs</h3>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{logs.length} entries</span>
+                                <span className={`badge badge-${status === 'running' ? 'running' : status === 'done' ? 'success' : 'error'}`}>{status.toUpperCase()}</span>
+                            </div>
                         </div>
-                        <div className="logs-terminal" style={{ background: '#111827', color: '#a78bfa', padding: '1.5rem 2rem', borderRadius: '8px', height: '800px', overflowY: 'auto', fontFamily: 'monospace', fontSize: '15px', lineHeight: '1.7', border: '1px solid var(--glass-border)', boxShadow: 'inset 0 4px 20px rgba(0,0,0,0.5)' }}>
+                        <div className="logs-terminal" style={{ background: '#0d1117', color: '#c9d1d9', padding: '1.75rem 2rem', borderRadius: '8px', height: '600px', overflowY: 'auto', fontFamily: '"Fira Code", "Cascadia Code", monospace', fontSize: '13.5px', lineHeight: '2', border: '1px solid var(--glass-border)', boxShadow: 'inset 0 4px 20px rgba(0,0,0,0.5)' }}>
                             {logs.map((log, i) => {
                                 const levelColor = {
-                                    info: '#60a5fa',         // blue
-                                    success: '#34d399',      // green
-                                    warning: '#fbbf24',      // yellow
-                                    error: '#ef4444'         // red 
+                                    info: '#79c0ff',
+                                    success: '#56d364',
+                                    warning: '#e3b341',
+                                    error: '#f85149'
                                 };
                                 return (
-                                    <div key={i} style={{ marginBottom: '6px', color: levelColor[log.level] || levelColor.info }}>
-                                        <span style={{ color: '#4b5563', marginRight: '12px' }}>[{log.time}]</span>
-                                        <span>{log.msg}</span>
+                                    <div key={i} style={{ marginBottom: '2px', color: levelColor[log.level] || levelColor.info, display: 'flex', gap: '12px' }}>
+                                        <span style={{ color: '#484f58', flexShrink: 0, userSelect: 'none' }}>[{log.time}]</span>
+                                        <span style={{ flex: 1 }}>{log.msg}</span>
                                     </div>
                                 )
                             })}

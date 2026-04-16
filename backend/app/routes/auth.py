@@ -11,6 +11,8 @@ import smtplib
 from datetime import datetime, timedelta, timezone
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
 
 from fastapi import APIRouter, HTTPException, status, Depends, BackgroundTasks
 from typing import Dict, Any, Optional
@@ -214,4 +216,78 @@ async def get_profile(user: Dict[str, Any] = Depends(get_current_user)):
         role=row["role"],
         is_active=row["is_active"],
         created_at=str(row["created_at"]) if row["created_at"] else None,
+    )
+
+
+class GoogleAuthRequest(BaseModel):
+    credential: str
+    role: str = "employee"  # Only used when creating a brand new user
+
+
+@router.post("/google", response_model=TokenResponse)
+async def google_login(req: GoogleAuthRequest):
+    """Verify Google JWT token and log user in, skipping OTP (Google is already 2FA)."""
+    
+    if not settings.GOOGLE_CLIENT_ID:
+        raise HTTPException(status_code=500, detail="Google Client ID not configured on server.")
+
+    try:
+        # Verify the Google token cryptographically
+        id_info = id_token.verify_oauth2_token(
+            req.credential,
+            google_requests.Request(),
+            settings.GOOGLE_CLIENT_ID,
+            clock_skew_in_seconds=10
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=f"Invalid Google token: {str(e)}")
+
+    google_id = id_info.get("sub")         # Unique Google User ID
+    email = id_info.get("email")
+    full_name = id_info.get("name", email)
+
+    if not email:
+        raise HTTPException(status_code=400, detail="Could not retrieve email from Google account.")
+
+    # Check if user already exists (by email)
+    user = await fetch_one(
+        "SELECT id, full_name, role, is_active, provider FROM users WHERE email = $1",
+        email
+    )
+
+    if user:
+        # User exists — update their provider info and google_id if not already set
+        if not user["is_active"]:
+            raise HTTPException(status_code=403, detail="Account is deactivated.")
+        
+        await execute(
+            "UPDATE users SET google_id = $1, provider = 'google', otp_verified = TRUE WHERE email = $2",
+            google_id, email
+        )
+        user_id = user["id"]
+        role = user["role"]
+        name = user["full_name"]
+    else:
+        # New user — create account with the role they selected on signup
+        chosen_role = req.role if req.role in ["employee", "manager", "admin"] else "employee"
+        user_id = await fetch_val(
+            """
+            INSERT INTO users (full_name, email, role, provider, google_id, otp_verified)
+            VALUES ($1, $2, $3, 'google', $4, TRUE)
+            RETURNING id
+            """,
+            full_name, email, chosen_role, google_id
+        )
+        role = chosen_role
+        name = full_name
+
+    # Issue verified JWT — Google is already 2FA, so we skip MFA OTP
+    token = create_token(user_id, role, email, otp_verified=True)
+    await execute("INSERT INTO sessions (user_id, token) VALUES ($1, $2)", user_id, token)
+
+    return TokenResponse(
+        access_token=token,
+        user_id=user_id,
+        role=role,
+        full_name=name
     )
