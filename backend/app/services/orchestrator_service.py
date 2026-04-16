@@ -21,24 +21,9 @@ from datetime import datetime
 
 from ..core.config import settings
 from ..core.database import execute, fetch_val
-from ..core.cache import cache_delete, key_dashboard, key_governance_insights
+from ..core.cache import cache_delete, key_dashboard, key_governance_insights, get_redis
 
 logger = logging.getLogger("autoops.orchestrator_service")
-
-# ── Per-workflow SSE queues ──
-_workflow_queues: Dict[str, asyncio.Queue] = {}
-
-
-def get_or_create_queue(workflow_id: str) -> asyncio.Queue:
-    """Get or create an SSE event queue for a workflow."""
-    if workflow_id not in _workflow_queues:
-        _workflow_queues[workflow_id] = asyncio.Queue()
-    return _workflow_queues[workflow_id]
-
-
-def remove_queue(workflow_id: str):
-    """Clean up a workflow's SSE queue."""
-    _workflow_queues.pop(workflow_id, None)
 
 
 def _ensure_core_engine_on_path():
@@ -65,8 +50,6 @@ async def run_orchestrator(
       - The event_callback pushes events to the SSE queue AND saves to DB
       - Updates workflow status in DB on completion or failure
     """
-    queue = get_or_create_queue(workflow_id)
-
     # Shared store to pass tool results from earlier agents to later ones
     tool_results_store: Dict[str, Any] = {}
 
@@ -95,9 +78,18 @@ async def run_orchestrator(
     await cache_delete(key_dashboard(user_id))
 
     def _push_event(event_type: str, payload: Dict[str, Any]):
-        """Thread-safe push to the async SSE queue."""
+        """Thread-safe push to the Redis Pub/Sub channel."""
         data = json.dumps({"event": event_type, "data": payload})
-        loop.call_soon_threadsafe(queue.put_nowait, data)
+        
+        async def publish_to_redis():
+            client = await get_redis()
+            if client:
+                await client.publish(f"workflow:{workflow_id}:stream", data)
+            else:
+                logger.warning(f"Redis unavailable; dropping SSE event {event_type} for workflow {workflow_id}")
+
+        # Fire and forget the publish coroutine into the main thread's asyncio loop
+        asyncio.run_coroutine_threadsafe(publish_to_redis(), loop)
 
     def event_callback(event_type: str, payload: Dict[str, Any]):
         """

@@ -7,6 +7,7 @@ hooks. Serves both the API and the static frontend files.
 
 import os
 import logging
+import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -14,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from .core.database import get_pool, close_pool
+from .services.orchestrator_worker import start_worker_loop
 from .routes.auth import router as auth_router
 from .routes.workflow import router as workflow_router
 from .routes.dashboard import router as dashboard_router
@@ -37,8 +39,17 @@ async def lifespan(app: FastAPI):
     logger.info("🚀 AutoOps AI starting up...")
     await get_pool()
     logger.info("✅ Database pool ready")
+    
+    # Start Redis background worker task
+    worker_task = asyncio.create_task(start_worker_loop())
+    
     yield
     logger.info("🛑 AutoOps AI shutting down...")
+    worker_task.cancel()
+    try:
+        await worker_task
+    except asyncio.CancelledError:
+        pass
     await close_pool()
 
 

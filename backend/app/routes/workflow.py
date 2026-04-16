@@ -13,7 +13,8 @@ from sse_starlette.sse import EventSourceResponse
 
 from ..core.security import get_current_user
 from ..services.workflow_service import create_workflow, get_workflow, get_workflow_history
-from ..services.orchestrator_service import run_orchestrator, get_or_create_queue, remove_queue
+from ..services.orchestrator_service import run_orchestrator
+from ..core.cache import get_redis
 from ..schemas.workflow import WorkflowRunRequest
 
 router = APIRouter(prefix="/workflow", tags=["Workflows"])
@@ -38,14 +39,22 @@ async def run_workflow(
         file_id=req.file_id,
     )
 
-    # Pre-create the SSE queue
-    get_or_create_queue(workflow_id)
-
-    # Launch orchestrator in background
-    loop = asyncio.get_running_loop()
-    asyncio.create_task(
-        run_orchestrator(workflow_id, req.input_text, user["user_id"], loop, req.file_id)
-    )
+    # Push to Redis Queue for background worker
+    client = await get_redis()
+    if client:
+        payload = json.dumps({
+            "workflow_id": workflow_id,
+            "input_text": req.input_text,
+            "user_id": user["user_id"],
+            "file_id": req.file_id
+        })
+        await client.lpush("orchestrator_queue", payload)
+    else:
+        # Fallback to direct background task if Redis is unavailable
+        loop = asyncio.get_running_loop()
+        asyncio.create_task(
+            run_orchestrator(workflow_id, req.input_text, user["user_id"], loop, req.file_id)
+        )
 
     return {
         "workflow_id": workflow_id,
@@ -69,31 +78,39 @@ async def stream_workflow(workflow_id: str):
       - error: Execution error
       - done: Stream complete
     """
-    queue = get_or_create_queue(workflow_id)
-
     async def event_generator():
+        client = await get_redis()
+        if not client:
+            yield {"data": json.dumps({"event": "error", "data": {"message": "Redis unavailable. Cannot stream results."}})}
+            return
+            
+        pubsub = client.pubsub()
+        await pubsub.subscribe(f"workflow:{workflow_id}:stream")
+        
         try:
             while True:
-                # Wait for next event with a timeout
                 try:
-                    msg = await asyncio.wait_for(queue.get(), timeout=300)
+                    # Pubsub.get_message with timeout to allow keepalives
+                    msg = await asyncio.wait_for(pubsub.get_message(ignore_subscribe_messages=True), timeout=300)
                 except asyncio.TimeoutError:
-                    # Send keepalive
                     yield {"data": json.dumps({"event": "keepalive", "data": {}})}
                     continue
 
-                yield {"data": msg}
-                queue.task_done()
-
-                # Check if stream should end
-                try:
-                    parsed = json.loads(msg)
-                    if parsed.get("event") in ["done", "error"]:
-                        break
-                except (json.JSONDecodeError, KeyError):
-                    pass
+                if msg and msg["type"] == "message":
+                    data = msg["data"]
+                    yield {"data": data}
+                    
+                    try:
+                        parsed = json.loads(data)
+                        if parsed.get("event") in ["done", "error"]:
+                            break
+                    except (json.JSONDecodeError, KeyError):
+                        pass
+                else:
+                    await asyncio.sleep(0.1) # Prevent busy waiting if no msg immediately
         finally:
-            remove_queue(workflow_id)
+            await pubsub.unsubscribe(f"workflow:{workflow_id}:stream")
+            await pubsub.close()
 
     return EventSourceResponse(event_generator())
 

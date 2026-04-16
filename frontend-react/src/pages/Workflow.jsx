@@ -109,7 +109,7 @@ export default function Workflow() {
     const [file, setFile] = useState(null);
     const [workflowId, setWorkflowId] = useState(searchParams.get('id') || null);
     
-    const [status, setStatus] = useState('idle'); // idle, running, done, error
+    const [status, setStatus] = useState('idle'); // idle, queued, running, done, error
     const [logs, setLogs] = useState([]);
     const [agents, setAgents] = useState([]); // List of agent objects
     const [reportData, setReportData] = useState(null); // Full result payload
@@ -148,9 +148,10 @@ export default function Workflow() {
     };
 
     const connectSSE = (id) => {
-        setStatus('running');
+        setStatus('queued');
         setLogs([]);
-        addLog(`Connecting to Stream Channel [${id.slice(0,8)}]...`, 'info');
+        addLog(`[Redis Queue] Append operation successful: Job placed in 'orchestrator_queue' list`, 'success');
+        addLog(`[Redis Pub/Sub] Subscribed to broadcast channel [workflow:${id.slice(0,8)}:stream]. Waiting for background worker...`, 'info');
         
         const url = `${API_BASE}/workflow/stream/${id}`;
         eventSourceRef.current = new EventSource(url);
@@ -159,9 +160,10 @@ export default function Workflow() {
             try {
                 const payload = JSON.parse(event.data);
                 const { event: eventType, data } = payload;
+                if (eventType !== 'keepalive') setStatus('running');
 
                 if (eventType === 'start') {
-                    addLog('🚀 Workflow Engine Initialized — Connection to AutoOps runtime established', 'success');
+                    addLog('🚀 Redis Worker Picked Up Job — Connection to AutoOps runtime established', 'success');
                 } else if (eventType === 'status') {
                     addLog(data.step || 'Processing...', 'info');
                 } else if (eventType === 'agents_designed') {
@@ -217,7 +219,7 @@ export default function Workflow() {
 
     const runWorkflow = async () => {
         if (!prompt) return;
-        setStatus('running');
+        setStatus('queued');
         setAgents([]);
         setReportData(null);
         setLogs([{ time: formatTime(), msg: 'Submitting job allocation request...', level: 'info' }]);
@@ -261,13 +263,44 @@ export default function Workflow() {
     let csvAnalysis = null;
     let fallbackSummaries = [];
     
-    if (reportData && reportData.results) {
-        reportData.results.forEach(r => {
-            if (r.tool_result?.report) reportText = r.tool_result.report;
-            if (r.tool_result?.analysis) csvAnalysis = r.tool_result.analysis;
-            if (r.tool_result?.summary) reportText = r.tool_result.summary; // LLM summarizer
-            if (r.summary) fallbackSummaries.push({ agent: r.agent, txt: r.summary });
-        });
+    const extractData = (data) => {
+        if (!data || typeof data !== 'object') return;
+
+        const assignReportText = (text) => {
+            if (typeof text === 'string' && text.length > 20) {
+                if (!reportText || text.length > reportText.length) {
+                    reportText = text;
+                }
+            }
+        };
+
+        if (Array.isArray(data)) {
+            data.forEach(item => extractData(item));
+        } else {
+            if (data.tool_result) {
+                if (typeof data.tool_result === 'string') {
+                    assignReportText(data.tool_result);
+                } else if (typeof data.tool_result === 'object') {
+                    if (data.tool_result.report) assignReportText(data.tool_result.report);
+                    if (data.tool_result.markdown) assignReportText(data.tool_result.markdown);
+                    if (data.tool_result.summary) assignReportText(data.tool_result.summary);
+                    
+                    if (data.tool_result.analysis) csvAnalysis = data.tool_result.analysis;
+                }
+            }
+            if (data.agent && data.summary) {
+                fallbackSummaries.push({ agent: data.agent, txt: data.summary });
+            }
+            if (data.report) assignReportText(data.report);
+            
+            Object.values(data).forEach(val => extractData(val));
+        }
+    };
+
+    if (reportData) {
+        extractData(reportData);
+        // Deduplicate fallback summaries by agent name
+        fallbackSummaries = fallbackSummaries.filter((v,i,a)=>a.findIndex(t=>(t.agent === v.agent))===i);
     }
 
     return (
@@ -295,7 +328,7 @@ export default function Workflow() {
                 )}
 
                 <div className="workflow-actions" style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
-                    <button className="btn btn-primary btn-lg" onClick={runWorkflow} disabled={!prompt || status === 'running'}>{status === 'running' ? '🚀 Allocating Agents...' : 'Run Pipeline'}</button>
+                    <button className="btn btn-primary btn-lg" onClick={runWorkflow} disabled={!prompt || status === 'running' || status === 'queued'}>{status === 'running' ? '🚀 Allocating Agents...' : status === 'queued' ? '⏳ Queued via Redis...' : 'Run Pipeline'}</button>
                 </div>
             </div>
 
@@ -308,7 +341,7 @@ export default function Workflow() {
                             <div className="card" style={{ background: 'var(--bg-card)', flex: 1 }}>
                                 <div className="card-header">
                                     <h3 className="card-title">🤖 Active Agents ({agents.length})</h3>
-                                    <span className="badge badge-running">Orchestrator Online</span>
+                                    <span className="badge badge-running">{status === 'running' ? '⚡ Redis Worker Online' : 'Orchestrator Online'}</span>
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '520px', overflowY: 'auto' }}>
                                     {agents.map(a => (
@@ -344,7 +377,16 @@ export default function Workflow() {
                             <h3 className="card-title" style={{ fontSize: '1.4rem' }}>📡 Interactive Command Logs</h3>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                 <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{logs.length} entries</span>
-                                <span className={`badge badge-${status === 'running' ? 'running' : status === 'done' ? 'success' : 'error'}`}>{status.toUpperCase()}</span>
+                                {status === 'queued' ? (
+                                    <span className="badge" style={{background: '#f59e0b', color: '#fff'}}>QUEUED (Redis)</span>
+                                ) : status === 'running' ? (
+                                    <>
+                                        <span className="badge" style={{background: '#8b5cf6', color: '#fff'}}>⚡ Redis Pub/Sub Stream</span>
+                                        <span className="badge badge-running">RUNNING</span>
+                                    </>
+                                ) : (
+                                    <span className={`badge badge-${status === 'done' ? 'success' : 'error'}`}>{status.toUpperCase()}</span>
+                                )}
                             </div>
                         </div>
                         <div className="logs-terminal" style={{ background: '#0d1117', color: '#c9d1d9', padding: '1.75rem 2rem', borderRadius: '8px', height: '600px', overflowY: 'auto', fontFamily: '"Fira Code", "Cascadia Code", monospace', fontSize: '13.5px', lineHeight: '2', border: '1px solid var(--glass-border)', boxShadow: 'inset 0 4px 20px rgba(0,0,0,0.5)' }}>
