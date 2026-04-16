@@ -7,6 +7,10 @@ import History from './pages/History';
 import Files from './pages/Files';
 import Schedule from './pages/Schedule';
 import Settings from './pages/Settings';
+import ManagerDashboard from './pages/ManagerDashboard';
+import ManagerTeams from './pages/ManagerTeams';
+import ManagerReports from './pages/ManagerReports';
+import ManagerLogs from './pages/ManagerLogs';
 import './css/styles.css';
 
 function Sidebar() {
@@ -31,31 +35,59 @@ function Sidebar() {
     return (
         <aside className="sidebar" id="sidebar">
             <div className="sidebar-logo">
-                <h2>AUTOOPS AI</h2>
+                <h2>AUTOPS AI</h2>
                 <span>AI Workflow Engine</span>
             </div>
             <nav className="sidebar-nav">
-                <div className="nav-section">
-                    <div className="nav-section-title">Main</div>
-                    <Link to="/dashboard" className={isActive("/dashboard")}>
-                        <span className="icon">📊</span> Dashboard
-                    </Link>
-                    <Link to="/workflow" className={isActive("/workflow")}>
-                        <span className="icon">▶️</span> Run Workflow
-                    </Link>
-                    <Link to="/history" className={isActive("/history")}>
-                        <span className="icon">📋</span> My Workflows
-                    </Link>
-                </div>
-                <div className="nav-section">
-                    <div className="nav-section-title">Resources</div>
-                    <Link to="/files" className={isActive("/files")}>
-                        <span className="icon">📁</span> Files
-                    </Link>
-                    <Link to="/schedule" className={isActive("/schedule")}>
-                        <span className="icon">📅</span> Schedule
-                    </Link>
-                </div>
+                {user.role === 'manager' || user.role === 'admin' ? (
+                    <>
+                        <div className="nav-section">
+                            <div className="nav-section-title">Manager Portal</div>
+                            <Link to="/manager/dashboard" className={isActive("/manager/dashboard")}>
+                                <span className="icon">📈</span> Overview
+                            </Link>
+                            <Link to="/manager/teams" className={isActive("/manager/teams")}>
+                                <span className="icon">👥</span> Teams & Members
+                            </Link>
+                            <Link to="/manager/reports" className={isActive("/manager/reports")}>
+                                <span className="icon">📑</span> Report Hub
+                            </Link>
+                            <Link to="/manager/logs" className={isActive("/manager/logs")}>
+                                <span className="icon">🛡️</span> Audit Logs
+                            </Link>
+                        </div>
+                        <div className="nav-section">
+                            <div className="nav-section-title">Personal Execution</div>
+                            <Link to="/workflow" className={isActive("/workflow")}>
+                                <span className="icon">▶️</span> Run Workflow
+                            </Link>
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <div className="nav-section">
+                            <div className="nav-section-title">Main</div>
+                            <Link to="/dashboard" className={isActive("/dashboard")}>
+                                <span className="icon">📊</span> Dashboard
+                            </Link>
+                            <Link to="/workflow" className={isActive("/workflow")}>
+                                <span className="icon">▶️</span> Run Workflow
+                            </Link>
+                            <Link to="/history" className={isActive("/history")}>
+                                <span className="icon">📋</span> My Workflows
+                            </Link>
+                        </div>
+                        <div className="nav-section">
+                            <div className="nav-section-title">Resources</div>
+                            <Link to="/files" className={isActive("/files")}>
+                                <span className="icon">📁</span> Files
+                            </Link>
+                            <Link to="/schedule" className={isActive("/schedule")}>
+                                <span className="icon">📅</span> Schedule
+                            </Link>
+                        </div>
+                    </>
+                )}
                 <div className="nav-section">
                     <Link to="/settings" className={isActive("/settings")}>
                         <span className="icon">⚙️</span> Settings
@@ -102,6 +134,12 @@ export default function App() {
                 <Route path="/files" element={<Layout><Files /></Layout>} />
                 <Route path="/schedule" element={<Layout><Schedule /></Layout>} />
                 <Route path="/settings" element={<Layout><Settings /></Layout>} />
+                
+                {/* Manager Routes */}
+                <Route path="/manager/dashboard" element={<Layout><ManagerDashboard /></Layout>} />
+                <Route path="/manager/teams" element={<Layout><ManagerTeams /></Layout>} />
+                <Route path="/manager/reports" element={<Layout><ManagerReports /></Layout>} />
+                <Route path="/manager/logs" element={<Layout><ManagerLogs /></Layout>} />
             </Routes>
             <div className="toast-container" id="toastContainer"></div>
         </BrowserRouter>

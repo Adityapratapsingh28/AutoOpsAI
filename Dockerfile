@@ -18,7 +18,7 @@ COPY ODI-based-multi-agent-Framework/ /app/ODI-based-multi-agent-Framework/
 COPY backend/ /app/backend/
 
 # Copy frontend
-COPY frontend/ /app/frontend/
+COPY frontend-react/ /app/frontend-react/
 
 # Copy environment
 COPY .env /app/.env

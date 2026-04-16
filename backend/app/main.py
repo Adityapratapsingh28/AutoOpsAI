@@ -19,6 +19,7 @@ from .routes.workflow import router as workflow_router
 from .routes.dashboard import router as dashboard_router
 from .routes.files import router as files_router
 from .routes.meetings import router as meetings_router
+from .routes.manager import router as manager_router
 
 # ── Logging ──
 logging.basicConfig(
@@ -48,6 +49,18 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+from fastapi.responses import JSONResponse
+
+# ── Global Exception Handler ──
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    logger.error(f"Uncaught exception: {str(exc)}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"status": "error", "message": "Internal System Error - Try again."},
+        headers={"Access-Control-Allow-Origin": "*"}
+    )
+
 # ── CORS ──
 app.add_middleware(
     CORSMiddleware,
@@ -63,6 +76,7 @@ app.include_router(workflow_router, prefix="/api")
 app.include_router(dashboard_router, prefix="/api")
 app.include_router(files_router, prefix="/api")
 app.include_router(meetings_router, prefix="/api")
+app.include_router(manager_router, prefix="/api")
 
 
 # ── Health Check ──
@@ -73,6 +87,15 @@ async def health_check():
         "service": "AutoOps AI",
         "version": "1.0.0",
     }
+
+
+# ── Dev Route: Simulate Crash ──
+@app.get("/api/dev/crash")
+async def trigger_crash():
+    logger.info("Intentionally triggering a crash for demonstration...")
+    # This will throw a ZeroDivisionError
+    1 / 0
+    return {"message": "You will never see this"}
 
 
 # ── Serve Frontend Static Files ──

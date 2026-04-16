@@ -28,6 +28,15 @@ services:
       - pgdata:/var/lib/postgresql/data
     restart: unless-stopped
 
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - api
+    restart: unless-stopped
+
 volumes:
   pgdata:
   uploads:

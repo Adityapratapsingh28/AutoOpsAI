@@ -38,7 +38,11 @@ export default function SignIn() {
                 role: data.role,
                 full_name: data.full_name,
             }));
-            navigate('/dashboard');
+            if (data.role === 'manager' || data.role === 'admin') {
+                navigate('/manager/dashboard');
+            } else {
+                navigate('/dashboard');
+            }
         } catch (err) {
             setError(err.message);
         } finally {
@@ -70,7 +74,11 @@ export default function SignIn() {
                 role: data.role,
                 full_name: data.full_name,
             }));
-            navigate('/dashboard');
+            if (data.role === 'manager' || data.role === 'admin') {
+                navigate('/manager/dashboard');
+            } else {
+                navigate('/dashboard');
+            }
         } catch (err) {
             setError(err.message);
         } finally {
@@ -83,7 +91,7 @@ export default function SignIn() {
             <div className="auth-container">
                 <div className="auth-card">
                     <div className="auth-logo">
-                        <h1>AUTOOPS AI</h1>
+                        <h1>AUTOPS AI</h1>
                         <p>Enterprise AI Workflow Automation</p>
                     </div>
 

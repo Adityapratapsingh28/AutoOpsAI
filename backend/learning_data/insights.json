@@ -588,5 +588,85 @@
     "efficiency_gain": 0.0,
     "had_dialogues": true,
     "dialogue_count": 2
+  },
+  {
+    "scenario": "Analyse this csv file and send the generated result report to my engineering & management team, also",
+    "timestamp": 1776338627.302727,
+    "agents_count": 6,
+    "success_rate": 1.0,
+    "total_time": 33.4,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "analyse this csv and schdule the meet with engieering and sales team to discuss about the report res",
+    "timestamp": 1776339259.633611,
+    "agents_count": 6,
+    "success_rate": 1.0,
+    "total_time": 50.62,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "schedule a meet with my sales team to discuss about progress on 12 april at 9pm",
+    "timestamp": 1776339358.576053,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 13.99,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "schedule a meet with my engieering team members on 20 april to discuss about progress on recent ai p",
+    "timestamp": 1776339450.6646311,
+    "agents_count": 4,
+    "success_rate": 1.0,
+    "total_time": 12.89,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "analyse this csv and schdule the meet with engieering and sales team to discuss about the report res",
+    "timestamp": 1776339959.866057,
+    "agents_count": 6,
+    "success_rate": 0.8333333333333334,
+    "total_time": 47.07,
+    "efficiency_gain": 9.98,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "analyse this csv and schdule the meet with engieering and sales team to discuss about the report res",
+    "timestamp": 1776340097.5772018,
+    "agents_count": 6,
+    "success_rate": 1.0,
+    "total_time": 92.64,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "Analyse this csv file and send the generated result report to my engineering & management team, also",
+    "timestamp": 1776360700.742334,
+    "agents_count": 6,
+    "success_rate": 0.8333333333333334,
+    "total_time": 54.54,
+    "efficiency_gain": 11.03,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "Analyse this csv file and send the generated result report to my engineering & management team, also",
+    "timestamp": 1776361565.172092,
+    "agents_count": 6,
+    "success_rate": 1.0,
+    "total_time": 89.16,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
   }
 ]

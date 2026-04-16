@@ -162,6 +162,8 @@ cp .env.example .env
 # Run FastAPI Server
 python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
+docker-compose up -d --build
+
 
 ### 2. Launch the Frontend
 ```bash
@@ -172,4 +174,9 @@ npm run dev
 Open [http://localhost:5173](http://localhost:5173) and experience the power of an autonomous workforce! 
 
 ---
-*Built with ❤️ by Aditya Pratap Singh for the future of Automation.*
+
+
+
+Analyse this csv file and send the generated result report to my engineering & management team, also schedule a meeting with engineering and management team at 9pm on 29 april and agenda of meet is next month resposiblities
+
+analyse this csv and schdule the meet with engieering and sales team to discuss about the report result you have generated on 12 april 9 pm send mail to respective members 

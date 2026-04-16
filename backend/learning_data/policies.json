@@ -345,7 +345,13 @@
       "Successfully handled 'Schedule a Zoom meeting for the engineering team today... an...' in 11.6s",
       "Successfully handled 'Analyze this CSV give me the top trends and send the report ...' in 0.6s",
       "Successfully handled 'analyse this csv and send report to my sales team, also sche...' in 0.6s",
-      "Successfully handled 'analyse this csv and send the result report to my engieering...' in 1.1s"
+      "Successfully handled 'analyse this csv and send the result report to my engieering...' in 1.1s",
+      "Successfully handled 'Analyse this csv file and send the generated result report t...' in 0.4s",
+      "Successfully handled 'analyse this csv and schdule the meet with engieering and sa...' in 0.7s",
+      "Successfully handled 'analyse this csv and schdule the meet with engieering and sa...' in 0.6s",
+      "Successfully handled 'analyse this csv and schdule the meet with engieering and sa...' in 14.2s",
+      "Successfully handled 'Analyse this csv file and send the generated result report t...' in 3.3s",
+      "Successfully handled 'Analyse this csv file and send the generated result report t...' in 19.6s"
     ],
     "common_failures": [],
     "optimal_patterns": [
@@ -354,7 +360,13 @@
       "Fast execution pattern: Scheduled a Zoom meeting with the backend team at 10 AM tomorrow with the agenda",
       "Fast execution pattern: Scheduled a Zoom meeting with engineering team and management team on 19th April",
       "Fast execution pattern: Scheduled a Zoom meeting with the engineering team on 21st April at 9 PM with ag",
-      "Fast execution pattern: Scheduled a Zoom meeting with the engineering team on 23rd April at 10 PM with a"
+      "Fast execution pattern: Scheduled a Zoom meeting with the engineering team on 23rd April at 10 PM with a",
+      "Fast execution pattern: Scheduled a Zoom meeting with engineering and management team on 19th April at 9",
+      "Fast execution pattern: Scheduled a Zoom meeting with the engineering and sales teams on 12th April at 9",
+      "Fast execution pattern: Scheduled a Zoom meeting with the engineering and sales teams on 24th April at 9",
+      "Fast execution pattern: Scheduled a Zoom meeting with the engineering and sales teams on 25th April at 9",
+      "Fast execution pattern: Scheduled a Zoom meeting with the engineering and management team on 30th April ",
+      "Fast execution pattern: Scheduled a Zoom meeting with engineering and management team on 27th April at 9"
     ]
   },
   "Send Email Invitation": {
@@ -370,9 +382,18 @@
       "Successfully handled 'Analyze this CSV give me the top trends and send the report ...' in 4.8s",
       "Successfully handled 'Schedule a meeting with management team at 8pm on 20 april ,...' in 0.6s",
       "Successfully handled 'analyse this csv and send report to my sales team, also sche...' in 7.7s",
-      "Successfully handled 'analyse this csv and send the result report to my engieering...' in 7.6s"
+      "Successfully handled 'analyse this csv and send the result report to my engieering...' in 7.6s",
+      "Successfully handled 'Analyse this csv file and send the generated result report t...' in 0.4s",
+      "Successfully handled 'analyse this csv and schdule the meet with engieering and sa...' in 6.5s",
+      "Successfully handled 'schedule a meet with my sales team to discuss about progress...' in 0.4s",
+      "Successfully handled 'schedule a meet with my engieering team members on 20 april ...' in 0.6s",
+      "Successfully handled 'analyse this csv and schdule the meet with engieering and sa...' in 28.8s",
+      "Successfully handled 'Analyse this csv file and send the generated result report t...' in 31.9s"
     ],
-    "common_failures": [],
+    "common_failures": [
+      "Failed on 'analyse this csv and schdule the meet with engieering and sa...': Failed due to error: Error code: 429 - {'error': {'message': 'Rate limit reached",
+      "Failed on 'Analyse this csv file and send the generated result report t...': Failed due to error: Error code: 429 - {'error': {'message': 'Rate limit reached"
+    ],
     "optimal_patterns": [
       "Fast execution pattern: Sent email invitations to all members of the engineering team with meeting detai",
       "Fast execution pattern: Sent email invitations to all members of the engineering and management team wit",
@@ -380,7 +401,8 @@
       "Fast execution pattern: Sent email invitations to all members of the engineering team and management tea",
       "Fast execution pattern: Sent email invitations to all members of the management team with meeting detail",
       "Fast execution pattern: Sent email invitations to all members of the sales team with meeting details: Zo",
-      "Fast execution pattern: Sent email invitations to all members of the engineering team and sales team wit"
+      "Fast execution pattern: Sent email invitations to all members of the engineering team and sales team wit",
+      "Fast execution pattern: Sent email invitations to engineering and sales teams with meeting details: Zoom"
     ]
   },
   "Generate Meeting Report": {
@@ -393,7 +415,9 @@
       "Successfully handled 'Schedule a Zoom meeting for the engineering team today at 5:...' in 0.3s",
       "Successfully handled 'Schedule a Zoom meeting for the engineering team today... an...' in 0.3s",
       "Successfully handled 'Schedule a Zoom meeting for the engineering team today... an...' in 4.5s",
-      "Successfully handled 'Schedule a meeting with management team at 8pm on 20 april ,...' in 1.1s"
+      "Successfully handled 'Schedule a meeting with management team at 8pm on 20 april ,...' in 1.1s",
+      "Successfully handled 'schedule a meet with my sales team to discuss about progress...' in 0.7s",
+      "Successfully handled 'schedule a meet with my engieering team members on 20 april ...' in 1.4s"
     ],
     "common_failures": [],
     "optimal_patterns": [
@@ -401,20 +425,26 @@
       "Fast execution pattern: Generated meeting report for engineering & management team's Zoom meeting schedu",
       "Fast execution pattern: Generated final report with meeting details: Zoom meeting scheduled for today at",
       "Fast execution pattern: Generated final report with meeting details: Zoom meeting scheduled for 18 April",
-      "Fast execution pattern: Generated final report with meeting details: Zoom meeting scheduled for 20 April"
+      "Fast execution pattern: Generated final report with meeting details: Zoom meeting scheduled for 20 April",
+      "Fast execution pattern: Generated final report with meeting details: Zoom meeting scheduled for 12 April",
+      "Fast execution pattern: Generated final report with meeting details: Zoom meeting scheduled for April 20"
     ]
   },
   "Schedule Meeting": {
     "best_practices": [
       "Successfully handled 'Schedule a meeting with my engineering & management team at ...' in 0.6s",
       "Successfully handled 'schedule a meet with engineering team about workflow managen...' in 0.3s",
-      "Successfully handled 'Schedule a meeting with management team at 8pm on 20 april ,...' in 0.4s"
+      "Successfully handled 'Schedule a meeting with management team at 8pm on 20 april ,...' in 0.4s",
+      "Successfully handled 'schedule a meet with my sales team to discuss about progress...' in 0.4s",
+      "Successfully handled 'schedule a meet with my engieering team members on 20 april ...' in 0.9s"
     ],
     "common_failures": [],
     "optimal_patterns": [
       "Fast execution pattern: Scheduled a Zoom meeting with the engineering & management team at 9pm today wit",
       "Fast execution pattern: Scheduled a Zoom meeting with the engineering team at 7pm on 18 April with the a",
-      "Fast execution pattern: Scheduled a Zoom meeting with the management team at 8pm on 20 April with the ag"
+      "Fast execution pattern: Scheduled a Zoom meeting with the management team at 8pm on 20 April with the ag",
+      "Fast execution pattern: Scheduled a Zoom meeting with the sales team at 9pm on 12 April with the agenda ",
+      "Fast execution pattern: Scheduled a Zoom meeting with the engineering team on 20 April at a suitable tim"
     ]
   },
   "Broadcast Meeting Details": {
@@ -423,12 +453,20 @@
       "Successfully handled 'Analyze the attached CSV. Schedule a Zoom meeting with the b...' in 0.3s",
       "Successfully handled 'Analyze this CSV give me the top trends and send the report ...' in 21.1s",
       "Successfully handled 'analyse this csv and send report to my sales team, also sche...' in 23.8s",
-      "Successfully handled 'analyse this csv and send the result report to my engieering...' in 1.6s"
+      "Successfully handled 'analyse this csv and send the result report to my engieering...' in 1.6s",
+      "Successfully handled 'Analyse this csv file and send the generated result report t...' in 7.8s",
+      "Successfully handled 'analyse this csv and schdule the meet with engieering and sa...' in 20.2s",
+      "Successfully handled 'schedule a meet with my engieering team members on 20 april ...' in 1.7s",
+      "Successfully handled 'analyse this csv and schdule the meet with engieering and sa...' in 12.5s",
+      "Successfully handled 'analyse this csv and schdule the meet with engieering and sa...' in 13.9s",
+      "Successfully handled 'Analyse this csv file and send the generated result report t...' in 17.4s",
+      "Successfully handled 'Analyse this csv file and send the generated result report t...' in 14.1s"
     ],
     "common_failures": [],
     "optimal_patterns": [
       "Fast execution pattern: Broadcasted meeting details on Slack for the engineering team's Zoom meeting at ",
-      "Fast execution pattern: Broadcasted meeting details on Slack for the backend team's Zoom meeting at 10am"
+      "Fast execution pattern: Broadcasted meeting details on Slack for the backend team's Zoom meeting at 10am",
+      "Fast execution pattern: Broadcasted meeting details on Slack for the engineering team's Zoom meeting on "
     ]
   },
   "Analyze CSV File": {
@@ -436,13 +474,20 @@
       "Successfully handled 'Analyze the attached CSV. Schedule a Zoom meeting with the b...' in 0.3s",
       "Successfully handled 'Analyze this CSV give me the top trends and send the report ...' in 0.6s",
       "Successfully handled 'analyse this csv and send report to my sales team, also sche...' in 0.9s",
-      "Successfully handled 'analyse this csv and send the result report to my engieering...' in 1.6s"
+      "Successfully handled 'analyse this csv and send the result report to my engieering...' in 1.6s",
+      "Successfully handled 'Analyse this csv file and send the generated result report t...' in 1.9s",
+      "Successfully handled 'analyse this csv and schdule the meet with engieering and sa...' in 0.4s",
+      "Successfully handled 'analyse this csv and schdule the meet with engieering and sa...' in 0.7s",
+      "Successfully handled 'analyse this csv and schdule the meet with engieering and sa...' in 17.8s",
+      "Successfully handled 'Analyse this csv file and send the generated result report t...' in 0.8s"
     ],
     "common_failures": [],
     "optimal_patterns": [
       "Fast execution pattern: Analyzed the attached CSV file, scheduled a Zoom meeting with the backend team f",
       "Fast execution pattern: Analyzed the CSV file, identified top trends, and scheduled a Zoom meeting with ",
-      "Fast execution pattern: Analyzed the provided CSV file, identified top trends, and scheduled a Zoom meet"
+      "Fast execution pattern: Analyzed the provided CSV file, identified top trends, and scheduled a Zoom meet",
+      "Fast execution pattern: Analyzed the provided CSV file, identified top trends, generated a detailed repo",
+      "Fast execution pattern: Analyzed the provided CSV file, identified top trends, scheduled a Zoom meeting "
     ]
   },
   "Generate Detailed Report": {
@@ -450,12 +495,21 @@
       "Successfully handled 'Analyze the attached CSV. Schedule a Zoom meeting with the b...' in 0.9s",
       "Successfully handled 'Analyze this CSV give me the top trends and send the report ...' in 0.8s",
       "Successfully handled 'analyse this csv and send report to my sales team, also sche...' in 0.9s",
-      "Successfully handled 'analyse this csv and send the result report to my engieering...' in 1.6s"
+      "Successfully handled 'analyse this csv and send the result report to my engieering...' in 1.6s",
+      "Successfully handled 'Analyse this csv file and send the generated result report t...' in 1.8s",
+      "Successfully handled 'analyse this csv and schdule the meet with engieering and sa...' in 0.6s",
+      "Successfully handled 'analyse this csv and schdule the meet with engieering and sa...' in 13.9s",
+      "Successfully handled 'analyse this csv and schdule the meet with engieering and sa...' in 2.8s",
+      "Successfully handled 'Analyse this csv file and send the generated result report t...' in 12.1s",
+      "Successfully handled 'Analyse this csv file and send the generated result report t...' in 6.5s"
     ],
     "common_failures": [],
     "optimal_patterns": [
       "Fast execution pattern: Generated a detailed report from the attached CSV. Scheduled a Zoom meeting with",
-      "Fast execution pattern: Generated detailed report from the provided CSV, identified top trends, and sent"
+      "Fast execution pattern: Generated detailed report from the provided CSV, identified top trends, and sent",
+      "Fast execution pattern: Analyzed the provided CSV file, identified top trends, and generated a detailed ",
+      "Fast execution pattern: Generated detailed report from the provided CSV, identified top trends, sent rep",
+      "Fast execution pattern: Analyzed the provided CSV file, identified top trends, generated a detailed repo"
     ]
   },
   "Generate Final Report": {
@@ -464,14 +518,24 @@
       "Successfully handled 'Schedule a Zoom meeting for the engineering team today at 5:...' in 5.3s",
       "Successfully handled 'Analyze this CSV give me the top trends and send the report ...' in 12.8s",
       "Successfully handled 'analyse this csv and send report to my sales team, also sche...' in 0.9s",
-      "Successfully handled 'analyse this csv and send the result report to my engieering...' in 14.5s"
+      "Successfully handled 'analyse this csv and send the result report to my engieering...' in 14.5s",
+      "Successfully handled 'Analyse this csv file and send the generated result report t...' in 8.9s",
+      "Successfully handled 'analyse this csv and schdule the meet with engieering and sa...' in 11.0s",
+      "Successfully handled 'analyse this csv and schdule the meet with engieering and sa...' in 14.9s",
+      "Successfully handled 'analyse this csv and schdule the meet with engieering and sa...' in 13.9s",
+      "Successfully handled 'Analyse this csv file and send the generated result report t...' in 15.1s",
+      "Successfully handled 'Analyse this csv file and send the generated result report t...' in 15.2s"
     ],
     "common_failures": [],
     "optimal_patterns": [
       "Fast execution pattern: Generated final report with meeting details: Zoom meeting scheduled for tomorrow",
       "Fast execution pattern: Generated final report with meeting details: Zoom meeting scheduled for 19th Apr",
       "Fast execution pattern: Generated final report with meeting details: Zoom meeting scheduled for 21 April",
-      "Fast execution pattern: Generated final report with meeting details: Zoom meeting scheduled for 23 April"
+      "Fast execution pattern: Generated final report with meeting details: Zoom meeting scheduled for 23 April",
+      "Fast execution pattern: Generated final report with meeting details: Zoom meeting scheduled for 12 April",
+      "Fast execution pattern: Generated final report with meeting details: Zoom meeting scheduled for 25 April",
+      "Fast execution pattern: Generated final report with meeting details: Zoom meeting scheduled for 30th Apr",
+      "Fast execution pattern: Generated final report with meeting details: Zoom meeting scheduled for 27th Apr"
     ]
   },
   "Send Slack Invitation": {
