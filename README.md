@@ -137,5 +137,3 @@ cd frontend-react
 npm install
 npm run dev
 ```
-
-Open [http://localhost:5173](http://localhost:5173) and experience the future of autonomous workflows!

@@ -17,7 +17,7 @@ export default function Settings() {
     const handleCrashTest = async () => {
         try {
             const token = localStorage.getItem('autoops_token');
-            const res = await fetch('http://127.0.0.1:8000/api/dev/crash', {
+            const res = await fetch('/api/dev/crash', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();

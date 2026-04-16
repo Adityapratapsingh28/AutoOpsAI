@@ -1,5 +1,9 @@
 version: '3.8'
 
+networks:
+  autoops_network:
+    driver: bridge
+
 services:
   api:
     build: .
@@ -10,8 +14,13 @@ services:
     environment:
       - PYTHONPATH=/app/backend
       - CORE_ENGINE_PATH=/app/ODI-based-multi-agent-Framework
+      - POSTGRES_HOST=postgres
+      - REDIS_URL=redis://redis:6379/0
     depends_on:
       - postgres
+      - redis
+    networks:
+      - autoops_network
     volumes:
       - uploads:/app/uploads
     restart: unless-stopped
@@ -24,19 +33,37 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
+    networks:
+      - autoops_network
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: unless-stopped
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - autoops_network
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redisdata:/data
+
   nginx:
-    build: ./nginx
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
     ports:
       - "80:80"
       - "443:443"
     depends_on:
       - api
+    networks:
+      - autoops_network
     restart: unless-stopped
 
 volumes:
   pgdata:
   uploads:
+  redisdata:

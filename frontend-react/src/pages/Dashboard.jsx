@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
-const API_BASE = 'http://127.0.0.1:8000/api';
+const API_BASE = '/api';
 
 export default function Dashboard() {
     const cache = JSON.parse(sessionStorage.getItem('dashboard_cache') || 'null');
