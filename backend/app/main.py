@@ -20,6 +20,7 @@ from .routes.dashboard import router as dashboard_router
 from .routes.files import router as files_router
 from .routes.meetings import router as meetings_router
 from .routes.manager import router as manager_router
+from .routes.governance import router as governance_router
 
 # ── Logging ──
 logging.basicConfig(
@@ -77,6 +78,7 @@ app.include_router(dashboard_router, prefix="/api")
 app.include_router(files_router, prefix="/api")
 app.include_router(meetings_router, prefix="/api")
 app.include_router(manager_router, prefix="/api")
+app.include_router(governance_router, prefix="/api")
 
 
 # ── Health Check ──

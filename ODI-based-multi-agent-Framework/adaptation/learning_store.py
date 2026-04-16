@@ -2,119 +2,160 @@
 Learning Store — Persistent Policy & Insight Storage for CTDE.
 
 Stores learned policies (best practices, common failures, optimal patterns)
-and execution insights as JSON files. Used by the CTDE Coordinator to
+and execution insights in PostgreSQL. Used by the CTDE Coordinator to
 persist knowledge across runs and provide guidance to future agents.
 """
 
-import json
 import os
+import json
+import asyncio
+import asyncpg
 from typing import Any, Dict, List, Optional
 from utils.logger import setup_logger
 
 
 class LearningStore:
-    """Persistent JSON-based storage for CTDE policies and execution insights.
+    """Persistent PostgreSQL storage for CTDE policies and execution insights.
 
     Attributes:
-        storage_dir: Directory path for storing JSON data files.
-        policies: Dict mapping agent roles to their learned policies.
-        insights: List of accumulated execution insights.
+        db_url: PostgreSQL connection string from the environment.
     """
 
-    def __init__(self, storage_dir: str = "learning_data") -> None:
-        """Initialize the learning store, loading existing data if available."""
+    def __init__(self, db_url: Optional[str] = None):
+        """Initialize learning store pointing to PostgreSQL."""
         self.logger = setup_logger("LearningStore")
-        self.storage_dir = storage_dir
-        self.policies_file = os.path.join(storage_dir, "policies.json")
-        self.insights_file = os.path.join(storage_dir, "insights.json")
+        
+        # In a real environment, .env should set DATABASE_URL
+        from dotenv import load_dotenv
+        load_dotenv()
+        
+        self.db_url = db_url or os.getenv("DATABASE_URL")
+        if not self.db_url:
+            self.logger.warning("DATABASE_URL not found! Governance features disabled.")
+            
+        self.logger.info("Learning Store initialized via PostgreSQL.")
 
-        os.makedirs(storage_dir, exist_ok=True)
+    def _sync_db_call(self, coro):
+        """
+        Since MetaOrchestrator runs in a background thread, this safely 
+        spins up a new event loop to run asyncpg queries synchronously.
+        """
+        if not self.db_url:
+            return None
+        return asyncio.run(self._run_async(coro))
 
-        self.policies: Dict[str, Dict[str, List]] = self._load_json(self.policies_file, {})
-        self.insights: List[Dict[str, Any]] = self._load_json(self.insights_file, [])
-
-        self.logger.info(
-            f"Learning Store initialized — {len(self.policies)} policies, "
-            f"{len(self.insights)} insights loaded."
-        )
-
-    def _load_json(self, filepath: str, default: Any) -> Any:
-        """Load JSON from file, returning default if not found."""
-        if os.path.exists(filepath):
-            try:
-                with open(filepath, "r") as f:
-                    return json.load(f)
-            except (json.JSONDecodeError, IOError) as e:
-                self.logger.warning(f"Failed to load {filepath}: {e}")
-        return default
-
-    def _save_json(self, filepath: str, data: Any) -> None:
-        """Persist data as JSON to file."""
+    async def _run_async(self, coro):
+        conn = await asyncpg.connect(self.db_url)
         try:
-            with open(filepath, "w") as f:
-                json.dump(data, f, indent=2, default=str)
-        except IOError as e:
-            self.logger.error(f"Failed to save {filepath}: {e}")
+            return await coro(conn)
+        except Exception as e:
+            self.logger.error(f"PostgreSQL Error: {e}")
+            return None
+        finally:
+            await conn.close()
 
     def store_policy(self, agent_role: str, policy_data: Dict[str, Any]) -> None:
-        """Store or update a learned policy for a specific agent role.
-
-        Args:
-            agent_role: The role identifier (e.g., 'Evacuation Coordinator').
-            policy_data: Dict with keys like 'best_practices', 'common_failures',
-                         'optimal_patterns'.
-        """
-        if agent_role not in self.policies:
-            self.policies[agent_role] = {
-                "best_practices": [],
-                "common_failures": [],
-                "optimal_patterns": [],
-            }
-
-        existing = self.policies[agent_role]
-
-        # Merge new data into existing, avoiding duplicates
-        for key in ["best_practices", "common_failures", "optimal_patterns"]:
-            new_items = policy_data.get(key, [])
-            for item in new_items:
-                if item not in existing[key]:
-                    existing[key].append(item)
-
-        self._save_json(self.policies_file, self.policies)
+        """Store or update a learned policy for a specific agent role."""
+        async def _store(conn):
+            for category in ["best_practices", "common_failures", "optimal_patterns"]:
+                rules = policy_data.get(category, [])
+                for rule in rules:
+                    # Insert ignoring duplicates (ON CONFLICT DO NOTHING)
+                    await conn.execute("""
+                        INSERT INTO agent_policies (agent_role, category, rule_text)
+                        VALUES ($1, $2, $3)
+                        ON CONFLICT (agent_role, category, rule_text) DO NOTHING
+                    """, agent_role, category, rule)
+        
+        self._sync_db_call(_store)
         self.logger.info(f"[LEARNING STORE] Policy updated for role: {agent_role}")
 
     def get_policy(self, agent_role: str) -> Optional[Dict[str, Any]]:
-        """Retrieve learned policy for a given agent role.
-
-        Args:
-            agent_role: The role to look up.
-
-        Returns:
-            Policy dict or None if no policy exists for this role.
-        """
-        return self.policies.get(agent_role)
+        """Retrieve learned policy for a given agent role."""
+        async def _get(conn):
+            rows = await conn.fetch("""
+                SELECT category, rule_text 
+                FROM agent_policies 
+                WHERE agent_role = $1
+            """, agent_role)
+            
+            if not rows:
+                return None
+                
+            policy = {
+                "best_practices": [],
+                "common_failures": [],
+                "optimal_patterns": []
+            }
+            
+            for row in rows:
+                cat = row["category"]
+                if cat in policy:
+                    policy[cat].append(row["rule_text"])
+                    
+            return policy
+            
+        return self._sync_db_call(_get)
 
     def store_insight(self, insight: Dict[str, Any]) -> None:
-        """Append an execution insight to the persistent store.
-
-        Args:
-            insight: Dict containing scenario, outcome, metrics, learnings, etc.
-        """
-        self.insights.append(insight)
-        self._save_json(self.insights_file, self.insights)
-        self.logger.info(f"[LEARNING STORE] New insight stored (total: {len(self.insights)})")
+        """Append an execution insight to the persistent store."""
+        insight_json = json.dumps(insight, default=str)
+        
+        async def _store_insight(conn):
+            await conn.execute("""
+                INSERT INTO execution_insights (insight_data)
+                VALUES ($1)
+            """, insight_json)
+            
+            # Count total
+            total = await conn.fetchval("SELECT COUNT(*) FROM execution_insights")
+            self.logger.info(f"[LEARNING STORE] New insight stored (total: {total})")
+            
+        self._sync_db_call(_store_insight)
 
     def get_insights(self, limit: int = 10) -> List[Dict[str, Any]]:
-        """Retrieve recent execution insights.
-
-        Args:
-            limit: Max number of recent insights to return.
-
-        Returns:
-            List of insight dicts, most recent last.
-        """
-        return self.insights[-limit:]
+        """Retrieve recent execution insights."""
+        async def _get_insights(conn):
+            rows = await conn.fetch("""
+                SELECT insight_data 
+                FROM execution_insights 
+                ORDER BY created_at DESC 
+                LIMIT $1
+            """, limit)
+            
+            return [json.loads(row["insight_data"]) for row in rows]
+            
+        return self._sync_db_call(_get_insights) or []
 
     def get_all_policies(self) -> Dict[str, Dict[str, Any]]:
-        """Return all stored policies."""
-        return self.policies
+        """Return all stored policies grouped by role."""
+        async def _get_all(conn):
+            rows = await conn.fetch("SELECT agent_role, category, rule_text FROM agent_policies")
+            
+            policies = {}
+            for row in rows:
+                role = row["agent_role"]
+                cat = row["category"]
+                rule = row["rule_text"]
+                
+                if role not in policies:
+                    policies[role] = {
+                        "best_practices": [],
+                        "common_failures": [],
+                        "optimal_patterns": []
+                    }
+                if cat in policies[role]:
+                    policies[role][cat].append(rule)
+                    
+            return policies
+            
+        return self._sync_db_call(_get_all) or {}
+
+    # ─────────────────────────────────────────────
+    # GOVERNANCE API METHODS (Backwards Compatibility)
+    # The API now uses asyncpg directly, so these are 
+    # mostly safely deprecated but left for internal hook compatibility.
+    # ─────────────────────────────────────────────
+    
+    def reload_from_disk(self) -> None:
+        self.logger.info("[GOVERNANCE] Connected to active PostgreSQL store. No reload required.")

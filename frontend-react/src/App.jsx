@@ -11,6 +11,7 @@ import ManagerDashboard from './pages/ManagerDashboard';
 import ManagerTeams from './pages/ManagerTeams';
 import ManagerReports from './pages/ManagerReports';
 import ManagerLogs from './pages/ManagerLogs';
+import Governance from './pages/Governance';
 import './css/styles.css';
 
 function Sidebar() {
@@ -54,6 +55,9 @@ function Sidebar() {
                             </Link>
                             <Link to="/manager/logs" className={isActive("/manager/logs")}>
                                 <span className="icon">🛡️</span> Audit Logs
+                            </Link>
+                            <Link to="/manager/governance" className={isActive("/manager/governance")}>
+                                <span className="icon">⚖️</span> Governance
                             </Link>
                         </div>
                         <div className="nav-section">
@@ -140,6 +144,7 @@ export default function App() {
                 <Route path="/manager/teams" element={<Layout><ManagerTeams /></Layout>} />
                 <Route path="/manager/reports" element={<Layout><ManagerReports /></Layout>} />
                 <Route path="/manager/logs" element={<Layout><ManagerLogs /></Layout>} />
+                <Route path="/manager/governance" element={<Layout><Governance /></Layout>} />
             </Routes>
             <div className="toast-container" id="toastContainer"></div>
         </BrowserRouter>
