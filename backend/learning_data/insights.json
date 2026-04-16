@@ -488,5 +488,95 @@
     "efficiency_gain": 0.0,
     "had_dialogues": true,
     "dialogue_count": 2
+  },
+  {
+    "scenario": "Analyze this CSV give me the top trends and send the report to engineering team and management team ",
+    "timestamp": 1776313626.92814,
+    "agents_count": 6,
+    "success_rate": 1.0,
+    "total_time": 64.92,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "Schedule a meeting with management team at 8pm on 20 april , agenda is why my workforce is not worki",
+    "timestamp": 1776314535.914916,
+    "agents_count": 3,
+    "success_rate": 1.0,
+    "total_time": 12.29,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "analyse this csv and send report to my sales team, also schedule a meeting with my engieering team o",
+    "timestamp": 1776318886.283189,
+    "agents_count": 6,
+    "success_rate": 1.0,
+    "total_time": 50.75,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 2
+  },
+  {
+    "scenario": "analyse the csv and give me report",
+    "timestamp": 1776319199.509536,
+    "agents_count": 2,
+    "success_rate": 1.0,
+    "total_time": 3.51,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 1
+  },
+  {
+    "scenario": "analyse the csv and give me report",
+    "timestamp": 1776319436.683286,
+    "agents_count": 2,
+    "success_rate": 1.0,
+    "total_time": 2.88,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 1
+  },
+  {
+    "scenario": "analyse the file and give me report",
+    "timestamp": 1776319588.152755,
+    "agents_count": 2,
+    "success_rate": 1.0,
+    "total_time": 3.26,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 1
+  },
+  {
+    "scenario": "analyse the file and give me report",
+    "timestamp": 1776319694.291701,
+    "agents_count": 2,
+    "success_rate": 1.0,
+    "total_time": 4.19,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 1
+  },
+  {
+    "scenario": "analyse the csv file",
+    "timestamp": 1776319738.992158,
+    "agents_count": 2,
+    "success_rate": 1.0,
+    "total_time": 3.4,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 1
+  },
+  {
+    "scenario": "Anylyze the csv file",
+    "timestamp": 1776319797.512342,
+    "agents_count": 2,
+    "success_rate": 1.0,
+    "total_time": 2.86,
+    "efficiency_gain": 0.0,
+    "had_dialogues": true,
+    "dialogue_count": 1
   }
 ]

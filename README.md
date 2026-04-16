@@ -331,3 +331,6 @@ Open [http://localhost:8000](http://localhost:8000) in your browser.
 ## 📄 License
 
 Private / Proprietary
+
+
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
