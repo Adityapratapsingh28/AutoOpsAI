@@ -17,6 +17,7 @@ export default function SignIn() {
     const [signupName, setSignupName] = useState('');
     const [signupEmail, setSignupEmail] = useState('');
     const [signupPassword, setSignupPassword] = useState('');
+    const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
     const [signupRole, setSignupRole] = useState('employee');
 
     const handleLogin = async (e) => {
@@ -31,6 +32,11 @@ export default function SignIn() {
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.detail || 'Login failed');
+
+            if (data.status === 'otp_required') {
+                navigate('/verify-otp', { state: { email: data.email } });
+                return;
+            }
 
             localStorage.setItem('autoops_token', data.access_token);
             localStorage.setItem('autoops_user', JSON.stringify({
@@ -54,6 +60,12 @@ export default function SignIn() {
         e.preventDefault();
         setLoading(true);
         setError(null);
+        if (signupPassword !== signupConfirmPassword) {
+            setError("Passwords do not match");
+            setLoading(false);
+            return;
+        }
+        
         try {
             const res = await fetch(`${API_BASE}/auth/signup`, {
                 method: 'POST',
@@ -68,17 +80,13 @@ export default function SignIn() {
             const data = await res.json();
             if (!res.ok) throw new Error(data.detail || 'Signup failed');
 
-            localStorage.setItem('autoops_token', data.access_token);
-            localStorage.setItem('autoops_user', JSON.stringify({
-                user_id: data.user_id,
-                role: data.role,
-                full_name: data.full_name,
-            }));
-            if (data.role === 'manager' || data.role === 'admin') {
-                navigate('/manager/dashboard');
-            } else {
-                navigate('/dashboard');
+            if (data.status === 'success') {
+                setTab('login');
+                setLoginEmail(signupEmail);
+                setError('Account created successfully! Please log in to complete verification.');
+                return;
             }
+            
         } catch (err) {
             setError(err.message);
         } finally {
@@ -143,6 +151,11 @@ export default function SignIn() {
                                 <label htmlFor="signupPassword">Password</label>
                                 <input type="password" id="signupPassword" className="form-input" placeholder="Min 6 characters" required minLength={6} 
                                     value={signupPassword} onChange={e => setSignupPassword(e.target.value)} />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="signupConfirmPassword">Confirm Password</label>
+                                <input type="password" id="signupConfirmPassword" className="form-input" placeholder="Confirm your password" required minLength={6} 
+                                    value={signupConfirmPassword} onChange={e => setSignupConfirmPassword(e.target.value)} />
                             </div>
                             <div className="form-group">
                                 <label htmlFor="signupRole">Role</label>

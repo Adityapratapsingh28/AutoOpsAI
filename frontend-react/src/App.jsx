@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import SignIn from './pages/SignIn';
+import OTPVerification from './pages/OTPVerification';
 import Dashboard from './pages/Dashboard';
 import Workflow from './pages/Workflow';
 import History from './pages/History';
@@ -132,6 +133,7 @@ export default function App() {
             <div className="bg-mesh"></div>
             <Routes>
                 <Route path="/" element={<SignIn />} />
+                <Route path="/verify-otp" element={<OTPVerification />} />
                 <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
                 <Route path="/workflow" element={<Layout><Workflow /></Layout>} />
                 <Route path="/history" element={<Layout><History /></Layout>} />

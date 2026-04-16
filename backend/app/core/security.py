@@ -32,12 +32,13 @@ def verify_password(password: str, hashed: str) -> bool:
 
 # ── JWT Tokens ──
 
-def create_token(user_id: int, role: str, email: str) -> str:
-    """Create a JWT token with user claims and expiry."""
+def create_token(user_id: int, role: str, email: str, otp_verified: bool = False) -> str:
+    """Create a JWT token with user claims, expiry, and MFA verification status."""
     payload = {
         "user_id": user_id,
         "role": role,
         "email": email,
+        "otp_verified": otp_verified,
         "exp": datetime.now(timezone.utc) + timedelta(hours=settings.JWT_EXPIRY_HOURS),
         "iat": datetime.now(timezone.utc),
     }
@@ -69,10 +70,18 @@ async def get_current_user(
 ) -> Dict[str, Any]:
     """FastAPI dependency that extracts and validates the current user from JWT."""
     payload = verify_token(credentials.credentials)
+    
+    if not payload.get("otp_verified"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Session requires MFA OTP verification.",
+        )
+        
     return {
         "user_id": payload["user_id"],
         "role": payload["role"],
         "email": payload["email"],
+        "otp_verified": payload.get("otp_verified", False)
     }
 
 

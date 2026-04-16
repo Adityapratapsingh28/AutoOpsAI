@@ -176,6 +176,10 @@ Open [http://localhost:5173](http://localhost:5173) and experience the power of 
 ---
 
 
+
+Analyse this csv file and send the generated result report to my engineering & management team, also schedule a meeting with engineering and management team at 9pm on 29 april and agenda of meet is next month resposiblities
+
+
 # 🏆 Brownie Concepts Implemented
 
 To ensure enterprise-readiness and satisfy advanced technical requirements, the following core software concepts are natively implemented:
@@ -207,3 +211,9 @@ Not all users should be able to view org-wide analytics or enforce AI governance
 ### 6. Prevent Common Exceptions (Fault Tolerance)
 AI workflows are notoriously brittle. We built custom exception handlers so the entire backend server doesn't crash when an external API fails.
 *   **Implementation Location**: `backend/app/services/orchestrator_service.py` safely wraps the execution blocks with `try/except` captures. If Groq throws a Rate Limit 429 error or an agent hallucinates unparseable JSON, the pipeline streams the isolated error directly across the SSE channel rather than causing a fatal Uvicorn server crash.
+
+### 7. Multi-Factor Authentication (Email OTP)
+To protect against brute-force attacks and credential stuffing, we implemented a custom SMTP-based MFA system.
+*   **Database Level**: Dynamic `otp_codes` table to securely track rolling 6-digit codes and their 5-minute expiration windows. 
+*   **Backend Level**: `backend/app/routes/auth.py` halts standard JWT issuance upon login, asynchronously sends an SMTP email (`send_otp_email`), and requires explicit `/verify-otp` confirmation. The `otp_verified` flag is cryptographically embedded into the session token via `backend/app/core/security.py`.
+*   **Frontend Level**: `frontend-react/src/pages/OTPVerification.jsx` catches the MFA signal and visually renders a secure code-entry portal to intercept unauthorized access.
