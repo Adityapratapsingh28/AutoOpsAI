@@ -116,6 +116,10 @@ export default function Governance() {
             });
 
             if (res.ok) {
+                const result = await res.json();
+                if (result.status === 'exists') {
+                    alert(`⚡ Idempotency Check:\n${result.message}`);
+                }
                 setNewRule('');
                 setIsAddModalOpen(false);
                 fetchPolicies();
@@ -264,6 +268,11 @@ export default function Governance() {
                     <p style={{ fontSize: '16px', color: '#6a6a6a', margin: 0 }}>
                         Review, edit, and enforce AI agent policies and behaviors
                     </p>
+                    <div style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#ecfdf5', color: '#047857', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: '600' }}>
+                            <span style={{ fontSize: '14px' }}>⚡</span> DB Idempotency Enforced
+                        </span>
+                    </div>
                 </div>
                 <button 
                     onClick={() => setIsAddModalOpen(true)}
