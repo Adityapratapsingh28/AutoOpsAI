@@ -218,4 +218,10 @@ To protect against brute-force attacks and credential stuffing, we implemented a
 *   **Backend Level**: `backend/app/routes/auth.py` halts standard JWT issuance upon login, asynchronously sends an SMTP email (`send_otp_email`), and requires explicit `/verify-otp` confirmation. The `otp_verified` flag is cryptographically embedded into the session token via `backend/app/core/security.py`.
 *   **Frontend Level**: `frontend-react/src/pages/OTPVerification.jsx` catches the MFA signal and visually renders a secure code-entry portal to intercept unauthorized access.
 
+### 8. Redis Caching layer
+To dramatically reduce database load and improve latency for high-frequency queries, we deployed a transparent async Redis caching layer.
+*   **Infrastructure**: Persistent cache handling hot-path data including user dashboards, CTDE policies, and governance insights.
+*   **Backend Level**: `backend/app/core/cache.py` provides async CRUD operations with graceful degradation. If Redis fails, the app seamlessly falls back to PostgreSQL without crashing.
+*   **Engine Integration**: `learning_store.py` uses Redis essentially removing expensive network DB calls from the orchestration loop. Dashboard API latency is fundamentally eliminated. Invalidations use a Surgical Write-Through design, meaning caches are deleted the exact millisecond underlying PostgreSQL tables mutate.
+
 test = analyse the csv, and send the report to my engineering & sales team, arrange a meeting with them on 20 april 9 pm , agenda is langchain

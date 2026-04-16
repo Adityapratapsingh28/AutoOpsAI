@@ -10,6 +10,7 @@ import os
 import json
 import asyncio
 import asyncpg
+import redis
 from typing import Any, Dict, List, Optional
 from utils.logger import setup_logger
 
@@ -33,6 +34,15 @@ class LearningStore:
         if not self.db_url:
             self.logger.warning("DATABASE_URL not found! Governance features disabled.")
             
+        self.redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+        try:
+            self.redis_client = redis.from_url(self.redis_url, decode_responses=True, socket_connect_timeout=2)
+            self.redis_client.ping()
+            self.logger.info("✅ Redis connected in Learning Store.")
+        except Exception as e:
+            self.logger.warning(f"⚠️ Redis unavailable in Learning Store: {e}")
+            self.redis_client = None
+
         self.logger.info("Learning Store initialized via PostgreSQL.")
 
     def _sync_db_call(self, coro):
@@ -68,10 +78,32 @@ class LearningStore:
                     """, agent_role, category, rule)
         
         self._sync_db_call(_store)
+        
+        # Invalidate cache
+        if self.redis_client:
+            try:
+                self.redis_client.delete(f"ctde:{agent_role}")
+                self.redis_client.delete("governance:policies")
+                self.logger.info(f"[CACHE INVALIDATED] ctde:{agent_role}")
+            except Exception as e:
+                self.logger.warning(f"Redis cache delete error: {e}")
+                
         self.logger.info(f"[LEARNING STORE] Policy updated for role: {agent_role}")
 
     def get_policy(self, agent_role: str) -> Optional[Dict[str, Any]]:
         """Retrieve learned policy for a given agent role."""
+        cache_key = f"ctde:{agent_role}"
+        
+        # Check cache First
+        if self.redis_client:
+            try:
+                cached = self.redis_client.get(cache_key)
+                if cached:
+                    self.logger.debug(f"[CACHE HIT] {cache_key}")
+                    return json.loads(cached)
+            except Exception as e:
+                self.logger.warning(f"Redis cache get error: {e}")
+
         async def _get(conn):
             rows = await conn.fetch("""
                 SELECT category, rule_text 
@@ -95,7 +127,17 @@ class LearningStore:
                     
             return policy
             
-        return self._sync_db_call(_get)
+        policy = self._sync_db_call(_get)
+        
+        # Set cache
+        if policy and self.redis_client:
+            try:
+                self.redis_client.setex(cache_key, 600, json.dumps(policy))
+                self.logger.info(f"[CACHE SET] {cache_key} (TTL=600s)")
+            except Exception as e:
+                self.logger.warning(f"Redis cache set error: {e}")
+                
+        return policy
 
     def store_insight(self, insight: Dict[str, Any]) -> None:
         """Append an execution insight to the persistent store."""

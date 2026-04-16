@@ -9,6 +9,7 @@ from typing import Dict, Any
 
 from ..core.database import fetch_one, fetch_all
 from ..core.security import get_current_user
+from ..core.cache import cache_get, cache_set, key_dashboard, DASHBOARD_TTL
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
@@ -18,6 +19,13 @@ async def get_dashboard(user: Dict[str, Any] = Depends(get_current_user)):
     """Return dashboard stats for the current user."""
 
     uid = user["user_id"]
+    cache_key = key_dashboard(uid)
+    
+    # Try to load from cache
+    cached_data = await cache_get(cache_key)
+    if cached_data:
+        cached_data["served_from"] = "redis"
+        return cached_data
 
     # Aggregate workflow stats
     total = await fetch_one(
@@ -63,7 +71,7 @@ async def get_dashboard(user: Dict[str, Any] = Depends(get_current_user)):
         for r in recent
     ]
 
-    return {
+    result = {
         "stats": {
             "total_workflows": total_count,
             "completed": completed_count,
@@ -74,3 +82,11 @@ async def get_dashboard(user: Dict[str, Any] = Depends(get_current_user)):
         },
         "recent_workflows": recent_workflows,
     }
+
+    # Save to Cache
+    await cache_set(cache_key, result, DASHBOARD_TTL)
+
+    # Indicate original source
+    result["served_from"] = "postgresql"
+
+    return result

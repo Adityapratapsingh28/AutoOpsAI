@@ -28,6 +28,9 @@ class Settings:
     # ── Google OAuth ──
     GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
 
+    # ── Redis Cache ──
+    REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379")
+
     # ── LLM ──
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
     LLM_MODEL: str = os.getenv("LLM_MODEL", "llama-3.3-70b-versatile")

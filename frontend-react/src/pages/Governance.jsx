@@ -60,6 +60,7 @@ export default function Governance() {
     const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [servedFrom, setServedFrom] = useState(null);
     
     // Form state for Add Rule
     const [newAgentRole, setNewAgentRole] = useState('');
@@ -83,6 +84,7 @@ export default function Governance() {
             if (res.ok) {
                 const data = await res.json();
                 setRoles(data.policies || []);
+                setServedFrom(data.served_from || 'postgresql');
             }
         } catch (err) {
             console.error(err);
@@ -272,6 +274,11 @@ export default function Governance() {
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#ecfdf5', color: '#047857', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: '600' }}>
                             <span style={{ fontSize: '14px' }}>⚡</span> DB Idempotency Enforced
                         </span>
+                        {servedFrom === 'redis' && (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'linear-gradient(90deg, #ef4444, #f97316)', color: 'white', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: '600', boxShadow: '0 0 10px rgba(239, 68, 68, 0.4)' }}>
+                                <span style={{ fontSize: '14px' }}>⚡</span> Served from Redis Cache
+                            </span>
+                        )}
                     </div>
                 </div>
                 <button 

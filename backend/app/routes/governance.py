@@ -20,6 +20,11 @@ from pydantic import BaseModel
 
 from ..core.security import get_current_user
 from ..core.database import fetch_all, fetch_val, execute
+from ..core.cache import (
+    cache_get, cache_set, cache_delete,
+    key_governance_policies, key_governance_insights, key_ctde_policy,
+    GOVERNANCE_TTL, INSIGHTS_TTL
+)
 
 logger = logging.getLogger("autoops.governance")
 
@@ -63,6 +68,12 @@ class DeleteRuleRequest(BaseModel):
 @router.get("/policies")
 async def get_all_policies(user: Dict[str, Any] = Depends(require_manager)):
     """Return structured policies grouped by agent role from PostgreSQL."""
+    cache_key = key_governance_policies()
+    cached = await cache_get(cache_key)
+    if cached:
+        cached["served_from"] = "redis"
+        return cached
+
     try:
         rows = await fetch_all("SELECT agent_role, category, rule_text FROM agent_policies")
         
@@ -91,10 +102,13 @@ async def get_all_policies(user: Dict[str, Any] = Depends(require_manager)):
                 "optimal_patterns": data["optimal_patterns"],
             })
             
-        return {
+        result = {
             "total_roles": len(role_cards),
             "policies": role_cards
         }
+        await cache_set(cache_key, result, GOVERNANCE_TTL)
+        result["served_from"] = "postgresql"
+        return result
     except Exception as e:
         logger.error(f"Error fetching policies from DB: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -129,6 +143,10 @@ async def add_rule(
             body.agent_role.strip(), body.category.strip(), body.rule.strip()
         )
         
+        # ── Invalidate Caches ──
+        await cache_delete(key_governance_policies())
+        await cache_delete(key_ctde_policy(body.agent_role.strip()))
+        
         return {
             "status": "created",
             "message": f"Rule added to '{body.agent_role}' / '{body.category}'",
@@ -161,6 +179,10 @@ async def update_rule(
                 detail=f"Rule not found in '{body.agent_role}' / '{body.category}'"
             )
             
+        # ── Invalidate Caches ──
+        await cache_delete(key_governance_policies())
+        await cache_delete(key_ctde_policy(body.agent_role.strip()))
+            
         return {
             "status": "updated",
             "message": f"Rule updated in '{body.agent_role}' / '{body.category}'",
@@ -191,6 +213,10 @@ async def delete_rule(
                 detail=f"Rule not found in '{body.agent_role}' / '{body.category}'"
             )
             
+        # ── Invalidate Caches ──
+        await cache_delete(key_governance_policies())
+        await cache_delete(key_ctde_policy(body.agent_role.strip()))
+            
         return {
             "status": "deleted",
             "message": f"Rule removed from '{body.agent_role}' / '{body.category}'"
@@ -208,6 +234,12 @@ async def get_insights(
     user: Dict[str, Any] = Depends(require_manager)
 ):
     """Get the N most recent execution insights."""
+    cache_key = key_governance_insights()
+    cached = await cache_get(cache_key)
+    if cached:
+        cached["served_from"] = "redis"
+        return cached
+
     try:
         rows = await fetch_all(
             "SELECT insight_data FROM execution_insights ORDER BY created_at DESC LIMIT $1",
@@ -222,10 +254,13 @@ async def get_insights(
             else:
                 insights.append(raw_data)
                 
-        return {
+        result = {
             "total": len(insights),
             "insights": insights
         }
+        await cache_set(cache_key, result, INSIGHTS_TTL)
+        result["served_from"] = "postgresql"
+        return result
     except Exception as e:
         logger.error(f"Error fetching insights from DB: {e}")
         raise HTTPException(status_code=500, detail=str(e))

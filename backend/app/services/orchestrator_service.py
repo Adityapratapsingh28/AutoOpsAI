@@ -21,6 +21,7 @@ from datetime import datetime
 
 from ..core.config import settings
 from ..core.database import execute, fetch_val
+from ..core.cache import cache_delete, key_dashboard, key_governance_insights
 
 logger = logging.getLogger("autoops.orchestrator_service")
 
@@ -89,6 +90,9 @@ async def run_orchestrator(
         "UPDATE workflows SET status = 'running' WHERE id = $1",
         workflow_id,
     )
+    
+    # Invalidate dashboard cache for running state
+    await cache_delete(key_dashboard(user_id))
 
     def _push_event(event_type: str, payload: Dict[str, Any]):
         """Thread-safe push to the async SSE queue."""
@@ -248,7 +252,7 @@ async def run_orchestrator(
 
             # Update workflow status
             asyncio.run_coroutine_threadsafe(
-                _update_workflow_status(workflow_id, "completed"),
+                _update_workflow_status(workflow_id, "completed", user_id),
                 loop,
             )
 
@@ -264,7 +268,7 @@ async def run_orchestrator(
             _push_event("error", {"message": str(e)})
             _push_event("done", {})
             asyncio.run_coroutine_threadsafe(
-                _update_workflow_status(workflow_id, "failed"),
+                _update_workflow_status(workflow_id, "failed", user_id),
                 loop,
             )
 
@@ -337,13 +341,18 @@ async def _save_output(workflow_id: str, result: Dict[str, Any]):
         logger.error(f"Failed to save output: {e}")
 
 
-async def _update_workflow_status(workflow_id: str, status: str):
-    """Update the workflow status."""
+async def _update_workflow_status(workflow_id: str, status: str, user_id: Optional[int] = None):
+    """Update the workflow status and invalidate cache."""
     try:
         await execute(
             "UPDATE workflows SET status = $1 WHERE id = $2",
             status, workflow_id,
         )
+        # Flush insights cache since workflow completed and likely dropped new insights
+        if status in ["completed", "failed"]:
+            await cache_delete(key_governance_insights())
+        if user_id:
+            await cache_delete(key_dashboard(user_id))
     except Exception as e:
         logger.error(f"Failed to update workflow status: {e}")
 

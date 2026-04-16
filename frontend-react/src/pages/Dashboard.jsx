@@ -53,7 +53,14 @@ export default function Dashboard() {
     return (
         <React.Fragment>
             <div className="page-header">
-                <h1>Dashboard</h1>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <h1>Dashboard</h1>
+                    {stats.served_from === 'redis' && (
+                        <span style={{ background: 'linear-gradient(90deg, #ef4444, #f97316)', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', boxShadow: '0 0 10px rgba(239, 68, 68, 0.4)' }}>
+                            ⚡ Served from Redis Cache
+                        </span>
+                    )}
+                </div>
                 <p>Welcome back! Here's an overview of your workflow activity.</p>
             </div>
 
