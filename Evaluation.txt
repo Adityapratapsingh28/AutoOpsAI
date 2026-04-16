@@ -1,0 +1,53 @@
+🟡 Core Features (The Foundation)
+1. "Refresh Token + Access Token"
+ELI5 Concept: When you enter the theme park, they give you a VIP Wristband (Access Token) to get on rides quickly. But the wristband self-destructs after 15 minutes for security. Instead of kicking you out of the park, they also secretly put a Passport (Refresh Token) in your pocket. When your wristband breaks, you show the passport to the guard, and they give you a new wristband without making you type your password again.
+What Judges Want: They want to see that your API does not make users log in over and over, and that you do not have Access Tokens living forever (which hackers can steal).
+How you implement: Currently, you issue one long-lasting token. You need to tweak your security.py to return two tokens during login. When the React app gets a "401 Unauthorized" error, it quietly uses the Refresh Token to fetch a new Access Token behind the scenes.
+2. "Basic Auth & JWT Tokens"
+ELI5 Concept: Basic Auth is like showing your ID card and yelling your password to the guard at every single ride. JWT (JSON Web Token) is the VIP Wristband. Once you pass the main gate, the wristband uses cryptographic math (Salt + Secret Keys) to prove who you are without ever sending the password again.
+What Judges Want: They already saw this in your code! You implemented Bearer tokens securely. No action needed here—you get full points.
+3. "Logs (Debug Level)"
+ELI5 Concept: Imagine having security cameras in the park. "INFO" level only records when a ride opens or closes. "DEBUG" level records every single tiny detail: exactly what speed a coaster was going, who sat in seat 4, and how much voltage the motor drew.
+What Judges Want: When the judges try to break your AI agents and something crashes, they want to look at your terminal and see exactly what line of code triggered it and what data was flowing at that exact millisecond.
+How you implement: You change level=logging.INFO to level=logging.DEBUG in FastAPI.
+4. "Monitoring & Kibana / Tracing"
+ELI5 Concept: The security cameras (Logs) are great, but the park manager (You) can't stare at 10,000 cameras at once. So, you install a giant Control Room Dashboard (Kibana/Grafana) with flashing red charts. It tells you "The CSV Tool takes 4 seconds (slow!)" or "50 people are using the Orchestrator right now." Tracing attaches a sticky note to every user request so you can track its exact journey from hitting the React button -> to the FastAPI server -> to the Database -> back to React.
+What Judges Want: Production readiness. An enterprise app isn't just code; it's the ability to monitor the health of that code when 10,000 people use it.
+How you implement: You would install an APM (like Datadog, Prometheus, or ELK) and wire a Python middleware into FastAPI that intercepts every network request and sends its speed/status to the dashboard.
+5. "Worker (Async Jobs)"
+ELI5 Concept: Your FastAPI server is the front desk receptionist. If a user asks to "Analyze a 1GB CSV file," the receptionist shouldn't pull out a calculator and do it on the desk. All the other guests in line would be stuck waiting! Instead, the receptionist takes the file, drops it in a Basket (Message Queue / Redis), and assigns a completely different employee in the back office—The Worker (Celery)—to process it.
+What Judges Want: Right now, your FastAPI server handles the heavy AI Orchestrator workload using built-in Python asyncio. It works for local testing, but under heavy traffic, the server will freeze. Judges want to see a decoupled architecture.
+How you implement: Set up Redis and install Celery. When a user runs a workflow, FastAPI drops the payload in Redis and immediately replies "Job Started". A detached physical terminal running Celery picks up the job and executes the AI agents.
+🟢 Security / Protection
+6. "HTTPS / Secure Communication"
+ELI5 Concept: When you send your password from React to FastAPI, it travels across internet wires. HTTPS puts your password inside an unbreakable hardened steel lockbox while it travels. Without HTTPS, it's written on a postcard where any router sitting between you and the server can read it.
+What Judges Want: Data encryption in transit.
+How you implement: You will not do this in Python. You will deploy code behind a Reverse Proxy like NGINX, which terminates the SSL certificate for you.
+7. "Prevent common exceptions"
+ELI5 Concept: If a user uploads a corrupted CSV file, the Python Pandas tool will have a heart attack (a fatal exception). If you don't catch it, the receptionist bursts into flames, and the browser gets a massive, ugly stack trace that exposes your internal server logic to hackers.
+What Judges Want: A "Global Exception Handler". No matter how badly the code breaks deep inside an agent, the server should swallow the crash gracefully and send a polite, generic message: {"error": "Internal System Error - Try again."}
+How you implement: Write a single @app.exception_handler(Exception) block in main.py that acts as a safety safety net catching 100% of uncaught crashes.
+🔵 Enhancements (Bonus Points)
+8. "Generate user admin"
+ELI5 Concept: When you deploy a brand new theme park, there are zero users in the database. How does the park owner get past the gate if there is no account to log into?
+What Judges Want: A bootstrapping script. They want to clone your GitHub repo, run python seed_admin.py, and immediately have a master admin@autoops.com account created in the database so they can log in and test things without having to build accounts manually.
+9. "Login via Google (OAuth)"
+ELI5 Concept: A user doesn't want to create a new password. They walk up to the gate and say, "Hey, Google already knows who I am, just ask them." Your server asks Google, Google verifies their identity, and then your server hands them an AutoOps VIP wristband.
+What Judges Want: Integration with external identity providers (SSO). It proves you know how to handle complex third-party API handshakes.
+How you implement: Add a Google Developer app. When they click "Login with Google", React redirects them to Google, Google gives them a secret code, React sends that code to FastAPI, and FastAPI swaps it for your native JWT.
+
+
+Implementation:
+
+#7: Prevent Common Exceptions (Global Exception Handler).
+
+Why is it the easiest?
+You don't need to install any new servers (like you do for HTTPS/NGINX) or download any tricky third-party packages. It requires exactly 5 lines of code injected into your backend/app/main.py file.
+
+What does it do?
+Right now, if an AI Agent tries to read a corrupt file and throws a random Python KeyError or IndexError, your FastAPI server will vomit a massive red error trace back to the React UI. This exposes backend logic and crashes the request violently.
+
+By adding a global exception handler, you intercept every single crash that slips past your logic, log the real error quietly in your backend terminal for debugging, and return a clean, professional 500 Internal Server Error JSON message to the browser.
+
+Would you like me to instantly wire those 5 lines of code into your backend/app/main.py file right now so you can get the points for it?
+
