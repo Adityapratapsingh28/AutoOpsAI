@@ -39,9 +39,9 @@ class Settings:
     SLACK_BOT_TOKEN: str = os.getenv("SLACK_BOT_TOKEN", "")
 
     # ── Zoom (Server-to-Server OAuth) ──
-    ZOOM_ACCOUNT_ID: str = os.getenv("ZOOM_ACCOUNT_ID", "")
-    ZOOM_CLIENT_ID: str = os.getenv("ZOOM_CLIENT_ID", "")
-    ZOOM_CLIENT_SECRET: str = os.getenv("ZOOM_CLIENT_SECRET", "")
+    ZOOM_ACCOUNT_ID: str = os.getenv("ZOOM_ACCOUNT_ID", "").strip()
+    ZOOM_CLIENT_ID: str = os.getenv("ZOOM_CLIENT_ID", "").strip()
+    ZOOM_CLIENT_SECRET: str = os.getenv("ZOOM_CLIENT_SECRET", "").strip()
 
     # ── File Uploads ──
     UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", os.path.join(
