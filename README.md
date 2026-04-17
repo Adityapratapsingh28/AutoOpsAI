@@ -35,20 +35,25 @@ Unlike standard linear chatbots, our ODI Engine gives agents true autonomy and m
 *   **Observe:** The engine reads the prompt, searches ChromaDB vector memory for past contextual workflows, and observes the available Tool Catalog.
 *   **Delegate:** It maps out a Directed Acyclic Graph (DAG). It realizes the *Secretary Agent* cannot act until the *Analysis Agent* finishes crunching the CSV. It delegates tasks in the exact optimal order.
 *   **Intervene:** (CTDE - Centralized Training, Decentralized Execution). The MetaOrchestrator watches the agents talk to each other. If an agent hallucinates or crashes, the orchestrator intervenes, evaluates feedback, and securely updates shared policies.
+   <img width="2950" height="1502" alt="odi" src="https://github.com/user-attachments/assets/4b816e4b-8e8b-4f96-800d-6c1e8a9bf5db" />
+
 
 ---
 
 ## 🏗️ System Architecture
 
-*(System Architecture Diagram goes here)*
+<img width="1600" height="1504" alt="image" src="https://github.com/user-attachments/assets/fb3183a0-0fc5-42e4-8bba-1dfdefe2f42f" />
+
 
 ---
 
-## 🎥 Live Demo
+## Demo Video
 
-*(Demo video or GIF goes here)*
 
----
+https://github.com/user-attachments/assets/dc973444-a545-4e00-84af-26cfac052b3f
+
+
+
 
 ## 🔨 The Arsenal (Tool Vault)
 
