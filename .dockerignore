@@ -1,0 +1,12 @@
+node_modules/
+frontend-react/node_modules/
+backend/venv/
+backend/env/
+backend/__pycache__/
+ODI-based-multi-agent-Framework/__pycache__/
+*.pyc
+.git/
+.DS_Store
+.env
+.idea/
+.vscode/
